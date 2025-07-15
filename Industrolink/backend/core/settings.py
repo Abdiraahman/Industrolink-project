@@ -39,12 +39,37 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'rest_framework_simplejwt',
     'users',
     'university',
     'students',
     'lecturers',
     'supervisors',   
 ]
+
+AUTH_USER_MODEL = 'users.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+}
+
+
+
+
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -83,19 +108,34 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
+#postgresql://postgres:qcIBIVAHgSDvpFaWdWTHnjaUSfAjHhef@hopper.proxy.rlwy.net:15423/
 DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.postgresql',
+        # 'NAME': 'railway',
+        # 'USER': 'postgres',
+        # 'PASSWORD': 'qcIBIVAHgSDvpFaWdWTHnjaUSfAjHhef',
+        # 'HOST': 'hopper.proxy.rlwy.net',  # Or IP if using a remote DB
+        # 'PORT': '15423',
+        # 'ENGINE': 'django.db.backends.postgresql',
+        # 'NAME': 'industro_db',
+        # 'USER': 'industro_db_user',
+        # 'PASSWORD': 'Xs52hc5R3yQVnz0qdPhIB5JPgaKhu2PO',
+        # 'HOST': 'dpg-d1qa5onfte5s73d4703g-a.oregon-postgres.render.com',  # Or IP if using a remote DB
+        # 'PORT': '5432',
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'postgres',
+        'USER': 'postgres.pyxgymijgpekhrvjehep',
         'PASSWORD': 'Industrolink2025',
-        'HOST': 'db.pyxgymijgpekhrvjehep.supabase.co',  # Or IP if using a remote DB
-        'PORT': '5432',
+        'HOST': 'aws-0-eu-west-3.pooler.supabase.com',  # Or IP if using a remote DB
+        'PORT': '5432'
     }
 }
 
+#postgresql://industro_db_user:Xs52hc5R3yQVnz0qdPhIB5JPgaKhu2PO@dpg-d1qa5onfte5s73d4703g-a.oregon-postgres.render.com/industro_db
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -137,3 +177,24 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SIMPLE_JWT = {
+    'USER_ID_FIELD': 'user_id',
+    'USER_ID_CLAIM': 'user_id',
+}
