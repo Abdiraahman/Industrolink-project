@@ -4,9 +4,19 @@ from students.models import Student
 from lecturers.models import Lecturer
 from supervisors.models import Supervisor, Company
 
-Student = get_user_model()  # Assuming Student is a custom user model
+#supervisor = get_user_model()  # Assuming Student is a custom user model
 
+class CompanyRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = [
+            'name', 'address', 'phone_number', 'email', 
+        ]
 
+    def create(self, data):
+        company = Company.objects.create(**data)
+        company.save()
+        return company
 
 
 # supervisors/serializers.py
