@@ -6,6 +6,7 @@ from .models import Student
 from .serializers import StudentProfileSerializer
 
 
+
 class StudentProfileCreateView(generics.CreateAPIView):
     serializer_class = StudentProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
