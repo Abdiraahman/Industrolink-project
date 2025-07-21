@@ -69,6 +69,14 @@ def profile_status_view(request):
         'role': user.role
     })
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def profile_view(request):
+    user = request.user
+    return Response({
+        'user': UserSerializer(user).data,
+    })
+
 
 class CompanyRegistrationView(generics.CreateAPIView):
     serializer_class = CompanyRegistrationSerializer

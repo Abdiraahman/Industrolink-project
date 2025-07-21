@@ -1,10 +1,7 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
 from students.models import Student
 from lecturers.models import Lecturer
 from supervisors.models import Supervisor, Company
-
-#supervisor = get_user_model()  # Assuming Student is a custom user model
 
 class CompanyRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
