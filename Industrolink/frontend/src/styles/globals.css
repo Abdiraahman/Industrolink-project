@@ -1,0 +1,183 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Base layer styles */
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+
+
+
+
+
+
+/* Optional: Add these CSS variables to your global.css for consistent theming */
+
+:root {
+  /* Auth Color Palette */
+  --auth-bg-primary: #0f172a;     /* slate-900 */
+  --auth-bg-secondary: #1e293b;   /* slate-800 */
+  --auth-bg-tertiary: #334155;    /* slate-700 */
+  
+  --auth-border-primary: #475569; /* slate-600 */
+  --auth-border-secondary: #64748b; /* slate-500 */
+  
+  --auth-text-primary: #ffffff;   /* white */
+  --auth-text-secondary: #94a3b8; /* slate-400 */
+  --auth-text-tertiary: #64748b;  /* slate-500 */
+  
+  --auth-accent-primary: #2563eb; /* blue-600 */
+  --auth-accent-hover: #1d4ed8;   /* blue-700 */
+  --auth-accent-light: #3b82f6;   /* blue-500 */
+  
+  --auth-error: #ef4444;          /* red-500 */
+  --auth-error-bg: #7f1d1d;       /* red-900 */
+  --auth-error-border: #dc2626;   /* red-600 */
+  
+  --auth-success: #10b981;        /* emerald-500 */
+  --auth-success-bg: #064e3b;     /* emerald-900 */
+  --auth-success-border: #059669; /* emerald-600 */
+  
+  /* Spacing and Sizing */
+  --auth-radius: 0.5rem;          /* rounded-lg */
+  --auth-radius-large: 1rem;      /* rounded-2xl */
+  --auth-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  /* Transitions */
+  --auth-transition: all 0.2s ease-in-out;
+  --auth-transition-fast: all 0.15s ease-in-out;
+}
+
+
+
+
+
+/* Add these to your existing src/global.css file */
+
+/* Auth Component Utilities */
+@layer components {
+  /* Auth container base */
+  .auth-page {
+    @apply min-h-screen bg-slate-900 flex items-center justify-center p-4;
+  }
+  
+  /* Auth card styling */
+  .auth-card {
+    @apply bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700 w-full max-w-md;
+  }
+  
+  /* Form input base styling */
+  .auth-input {
+    @apply w-full pl-10 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200;
+  }
+  
+  /* Error state for inputs */
+  .auth-input-error {
+    @apply border-red-500 focus:ring-red-600;
+  }
+  
+  /* Input icon positioning */
+  .auth-input-icon {
+    @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5;
+  }
+  
+  /* Primary button styling */
+  .auth-button-primary {
+    @apply w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-slate-800;
+  }
+  
+  /* Role selection button */
+  .auth-role-button {
+    @apply flex items-center p-3 rounded-lg border-2 transition-all duration-200 border-slate-600 hover:border-slate-500 text-slate-300 hover:text-slate-200;
+  }
+  
+  /* Active role selection */
+  .auth-role-button-active {
+    @apply border-blue-600 bg-blue-600/10 text-blue-400;
+  }
+  
+  /* Error message styling */
+  .auth-error {
+    @apply mt-1 text-sm text-red-400;
+  }
+  
+  /* General error alert */
+  .auth-error-alert {
+    @apply mb-4 p-3 bg-red-900/50 border border-red-600 rounded-lg flex items-center;
+  }
+  
+  /* Success message */
+  .auth-success {
+    @apply p-3 bg-green-900/50 border border-green-600 rounded-lg text-green-400;
+  }
+  
+  /* Form label styling */
+  .auth-label {
+    @apply block text-sm font-medium text-slate-300 mb-2;
+  }
+  
+  /* Link styling */
+  .auth-link {
+    @apply text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200;
+  }
+  
+  /* Secondary text */
+  .auth-text-secondary {
+    @apply text-slate-400;
+  }
+  
+  /* Loading spinner (optional) */
+  .auth-spinner {
+    @apply animate-spin rounded-full h-5 w-5 border-b-2 border-white;
+  }
+}
+
+/* Auth-specific utilities */
+@layer utilities {
+  /* Glassmorphism effect for auth cards (optional enhancement) */
+  .auth-glass {
+    backdrop-filter: blur(10px);
+    @apply bg-slate-800/90;
+  }
+  
+  /* Focus visible for better accessibility */
+  .auth-focus-visible {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800;
+  }
+  
+  /* Smooth height transitions for dynamic content */
+  .auth-transition-height {
+    transition: height 0.3s ease-in-out;
+  }
+  
+  /* Custom shadow for auth elements */
+  .auth-shadow {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+}

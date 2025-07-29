@@ -1,0 +1,17 @@
+@theme inline {
+  /* Your theme variables here */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  /* ... rest of your theme variables */
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  /* ... rest of your root variables */
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  /* ... rest of your dark mode variables */
+}
