@@ -1,0 +1,34 @@
+
+/* Import organized style files in order */
+@import './styles/globals.css';
+@import './styles/themes.css';
+@import './styles/components.css';
+
+/* 
+ * Any additional global styles that don't fit in the other files
+ * can be added here, but try to keep this file minimal
+ */
+
+/* Example: Any app-specific global overrides */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Example: Print styles if needed */
+@media print {
+  body {
+    background: white !important;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+

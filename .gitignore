@@ -1,3 +1,70 @@
 .venv/
 *.pyc
 __pycache__/
+
+
+# === BACKEND (Django DRF) ===
+industro/backend/.venv/
+industro/backend/**/__pycache__/
+industro/backend/**/*.py[cod]
+industro/backend/**/*.pyo
+industro/backend/**/*.pyd
+
+# Django migrations (ignore compiled files but keep init)
+industro/backend/**/migrations/
+!industro/backend/**/migrations/__init__.py
+
+# DB files
+industro/backend/*.sqlite3
+industro/backend/*.db
+
+# Django local env
+industro/backend/.env
+industro/backend/.env.*
+
+# Coverage and testing
+.industro/backend/htmlcov/
+.industro/backend/.coverage
+.industro/backend/.pytest_cache/
+.industro/backend/.mypy_cache/
+.industro/backend/.tox/
+
+# === FRONTEND (React + Vite + TypeScript) ===
+industro/frontend/node_modules/
+industro/frontend/dist/
+industro/frontend/dist-ssr/
+industro/frontend/.env
+industro/frontend/.env.*
+
+# Logs
+industro/frontend/npm-debug.log*
+industro/frontend/yarn-debug.log*
+industro/frontend/yarn-error.log*
+industro/frontend/pnpm-debug.log*
+industro/frontend/lerna-debug.log*
+
+# Vite cache
+industro/frontend/.vite/
+
+# TypeScript cache
+industro/frontend/tsconfig.tsbuildinfo
+
+# === GLOBAL (IDE/OS) ===
+.DS_Store
+Thumbs.db
+
+# VSCode and JetBrains
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# === OPTIONAL: Docker / CI (uncomment if needed) ===
+# .docker/
+# docker-compose.override.yml
+# .env.docker
+
