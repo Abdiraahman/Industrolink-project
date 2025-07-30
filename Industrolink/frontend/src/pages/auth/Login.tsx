@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Mail, Lock, AlertCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { Mail, Lock, AlertCircle } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 interface LoginFormData {
   email: string;
@@ -14,27 +15,28 @@ interface LoginErrors {
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [errors, setErrors] = useState<LoginErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: LoginErrors = {};
 
     // Email validation
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = "Please enter a valid email address";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     setErrors(newErrors);
@@ -43,23 +45,23 @@ const Login: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name as keyof LoginErrors]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: undefined
+        [name]: undefined,
       }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -69,22 +71,27 @@ const Login: React.FC = () => {
 
     try {
       // API call to Django backend
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/users/login/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Important: Include cookies
-        body: JSON.stringify(formData)
-      });
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:8000"
+        }/api/users/login/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Important: Include cookies
+          body: JSON.stringify(formData),
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
         // Handle successful login
-        console.log('Login successful:', data);
-        if (data.role === 'student') {
-          window.location.href = '/dashboard';
+        console.log("Login successful:", data);
+        if (data.role === "student") {
+          window.location.href = "/dashboard";
         }
       } else {
         // Handle login errors
@@ -95,8 +102,8 @@ const Login: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setErrors({ general: 'Network error. Please try again.' });
+      console.error("Login error:", error);
+      setErrors({ general: "Network error. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -136,7 +143,7 @@ const Login: React.FC = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   className={`w-full pl-10 pr-4 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
-                    errors.email ? 'border-red-500' : 'border-slate-600'
+                    errors.email ? "border-red-500" : "border-slate-600"
                   }`}
                   placeholder="Enter your email"
                   disabled={isLoading}
@@ -155,16 +162,28 @@ const Login: React.FC = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
-                    errors.password ? 'border-red-500' : 'border-slate-600'
+                  className={`w-full pl-10 pr-10 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
+                    errors.password ? "border-red-500" : "border-slate-600"
                   }`}
                   placeholder="Enter your password"
                   disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <Eye className="w-5 h-5" />
+                  ) : (
+                    <EyeOff className="w-5 h-5" />
+                  )}
+                </button>
               </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-400">{errors.password}</p>
@@ -177,14 +196,14 @@ const Login: React.FC = () => {
               disabled={isLoading}
               className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-slate-800"
             >
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isLoading ? "Signing In..." : "Sign In"}
             </button>
           </div>
 
           {/* Navigation Links */}
           <div className="mt-6 text-center">
             <p className="text-slate-400">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <a
                 href="/auth/register"
                 className="text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200"
@@ -207,7 +226,9 @@ const Login: React.FC = () => {
 
         {/* Footer */}
         <div className="mt-8 text-center text-slate-500 text-sm">
-          <p>By continuing, you agree to our Terms of Service and Privacy Policy</p>
+          <p>
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </p>
         </div>
       </div>
     </div>

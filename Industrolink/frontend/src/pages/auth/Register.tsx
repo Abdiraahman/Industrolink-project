@@ -1,6 +1,15 @@
-import React, { useState } from 'react';
-import { User, Mail, Lock, UserCheck, GraduationCap, Building2, AlertCircle, CheckCircle } from 'lucide-react';
-
+import React, { useState } from "react";
+import {
+  User,
+  Mail,
+  Lock,
+  UserCheck,
+  GraduationCap,
+  Building2,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 interface RegisterFormData {
   firstname: string;
   middlename: string;
@@ -26,23 +35,24 @@ interface RegisterErrors {
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState<RegisterFormData>({
-    firstname: '',
-    middlename: '',
-    lastname: '',
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: ''
+    firstname: "",
+    middlename: "",
+    lastname: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "",
   });
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const roles = [
-    { id: 'student', label: 'Student', icon: GraduationCap },
-    { id: 'lecturer', label: 'University Lecturer', icon: UserCheck },
-    { id: 'supervisor', label: 'Industry Supervisor', icon: Building2 }
+    { id: "student", label: "Student", icon: GraduationCap },
+    { id: "lecturer", label: "University Lecturer", icon: UserCheck },
+    { id: "supervisor", label: "Industry Supervisor", icon: Building2 },
   ];
 
   const validateForm = (): boolean => {
@@ -50,51 +60,53 @@ const Register: React.FC = () => {
 
     // Required field validations
     if (!formData.firstname.trim()) {
-      newErrors.firstname = 'First name is required';
+      newErrors.firstname = "First name is required";
     } else if (formData.firstname.trim().length < 2) {
-      newErrors.firstname = 'First name must be at least 2 characters';
+      newErrors.firstname = "First name must be at least 2 characters";
     }
 
     if (!formData.lastname.trim()) {
-      newErrors.lastname = 'Last name is required';
+      newErrors.lastname = "Last name is required";
     } else if (formData.lastname.trim().length < 2) {
-      newErrors.lastname = 'Last name must be at least 2 characters';
+      newErrors.lastname = "Last name must be at least 2 characters";
     }
 
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+      newErrors.username = "Username is required";
     } else if (formData.username.trim().length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+      newErrors.username = "Username must be at least 3 characters";
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+      newErrors.username =
+        "Username can only contain letters, numbers, and underscores";
     }
 
     // Email validation
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = "Please enter a valid email address";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = "Password must be at least 8 characters";
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+      newErrors.password =
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number";
     }
 
     // Confirm password validation
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     // Role validation
     if (!formData.role) {
-      newErrors.role = 'Please select a role';
+      newErrors.role = "Please select a role";
     }
 
     setErrors(newErrors);
@@ -103,30 +115,30 @@ const Register: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name as keyof RegisterErrors]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: undefined
+        [name]: undefined,
       }));
     }
   };
 
   const handleRoleSelect = (roleId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      role: roleId
+      role: roleId,
     }));
-    
+
     if (errors.role) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        role: undefined
+        role: undefined,
       }));
     }
   };
@@ -148,29 +160,34 @@ const Register: React.FC = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        role: formData.role
+        role: formData.role,
       };
 
       // API call to Django backend
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/users/register/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Important: Include cookies
-        body: JSON.stringify(submitData)
-      });
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:8000"
+        }/api/users/register/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Important: Include cookies
+          body: JSON.stringify(submitData),
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok) {
         // Handle successful registration
-        console.log('Registration successful:', data);
+        console.log("Registration successful:", data);
         setIsSuccess(true);
         // Tokens are now stored in HTTP-only cookies automatically
         // Optionally redirect after success
         setTimeout(() => {
-          window.location.href = '/auth/login';
+          window.location.href = "/auth/login";
         }, 2000);
       } else {
         // Handle registration errors
@@ -191,8 +208,8 @@ const Register: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      setErrors({ general: 'Network error. Please try again.' });
+      console.error("Registration error:", error);
+      setErrors({ general: "Network error. Please try again." });
     } finally {
       setIsLoading(false);
     }
@@ -204,9 +221,15 @@ const Register: React.FC = () => {
         <div className="w-full max-w-md">
           <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700 text-center">
             <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">Registration Successful!</h2>
-            <p className="text-slate-400 mb-4">Your account has been created successfully.</p>
-            <p className="text-sm text-slate-500">Redirecting to login page...</p>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Registration Successful!
+            </h2>
+            <p className="text-slate-400 mb-4">
+              Your account has been created successfully.
+            </p>
+            <p className="text-sm text-slate-500">
+              Redirecting to login page...
+            </p>
           </div>
         </div>
       </div>
@@ -248,9 +271,9 @@ const Register: React.FC = () => {
                     disabled={isLoading}
                     className={`flex items-center p-3 rounded-lg border-2 transition-all duration-200 ${
                       formData.role === role.id
-                        ? 'border-blue-600 bg-blue-600/10 text-blue-400'
-                        : 'border-slate-600 hover:border-slate-500 text-slate-300 hover:text-slate-200'
-                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        ? "border-blue-600 bg-blue-600/10 text-blue-400"
+                        : "border-slate-600 hover:border-slate-500 text-slate-300 hover:text-slate-200"
+                    } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     <IconComponent className="w-5 h-5 mr-3" />
                     <span className="font-medium">{role.label}</span>
@@ -278,7 +301,7 @@ const Register: React.FC = () => {
                   value={formData.firstname}
                   onChange={handleInputChange}
                   className={`w-full pl-10 pr-4 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
-                    errors.firstname ? 'border-red-500' : 'border-slate-600'
+                    errors.firstname ? "border-red-500" : "border-slate-600"
                   }`}
                   placeholder="Enter your first name"
                   disabled={isLoading}
@@ -321,7 +344,7 @@ const Register: React.FC = () => {
                   value={formData.lastname}
                   onChange={handleInputChange}
                   className={`w-full pl-10 pr-4 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
-                    errors.lastname ? 'border-red-500' : 'border-slate-600'
+                    errors.lastname ? "border-red-500" : "border-slate-600"
                   }`}
                   placeholder="Enter your last name"
                   disabled={isLoading}
@@ -345,7 +368,7 @@ const Register: React.FC = () => {
                   value={formData.username}
                   onChange={handleInputChange}
                   className={`w-full pl-10 pr-4 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
-                    errors.username ? 'border-red-500' : 'border-slate-600'
+                    errors.username ? "border-red-500" : "border-slate-600"
                   }`}
                   placeholder="Enter your username"
                   disabled={isLoading}
@@ -369,7 +392,7 @@ const Register: React.FC = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   className={`w-full pl-10 pr-4 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
-                    errors.email ? 'border-red-500' : 'border-slate-600'
+                    errors.email ? "border-red-500" : "border-slate-600"
                   }`}
                   placeholder="Enter your email"
                   disabled={isLoading}
@@ -388,16 +411,28 @@ const Register: React.FC = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
-                    errors.password ? 'border-red-500' : 'border-slate-600'
+                  className={`w-full pl-10 pr-10 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
+                    errors.password ? "border-red-500" : "border-slate-600"
                   }`}
                   placeholder="Enter your password"
                   disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <Eye className="w-5 h-5" />
+                  ) : (
+                    <EyeOff className="w-5 h-5" />
+                  )}
+                </button>
               </div>
               {errors.password && (
                 <p className="mt-1 text-sm text-red-400">{errors.password}</p>
@@ -412,19 +447,35 @@ const Register: React.FC = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-slate-600'
+                  className={`w-full pl-10 pr-10 py-3 bg-slate-700 border rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 ${
+                    errors.confirmPassword
+                      ? "border-red-500"
+                      : "border-slate-600"
                   }`}
                   placeholder="Confirm your password"
                   disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <Eye className="w-5 h-5" />
+                  ) : (
+                    <EyeOff className="w-5 h-5" />
+                  )}
+                </button>
               </div>
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>
+                <p className="mt-1 text-sm text-red-400">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
 
@@ -434,14 +485,14 @@ const Register: React.FC = () => {
               disabled={isLoading || !formData.role}
               className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-slate-800"
             >
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              {isLoading ? "Creating Account..." : "Create Account"}
             </button>
           </div>
 
           {/* Navigation Links */}
           <div className="mt-6 text-center">
             <p className="text-slate-400">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <a
                 href="/auth/login"
                 className="text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200"
@@ -454,7 +505,9 @@ const Register: React.FC = () => {
 
         {/* Footer */}
         <div className="mt-8 text-center text-slate-500 text-sm">
-          <p>By continuing, you agree to our Terms of Service and Privacy Policy</p>
+          <p>
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </p>
         </div>
       </div>
     </div>
