@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuthContext } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 interface RegisterFormData {
   firstname: string;
@@ -134,9 +134,9 @@ const Register: React.FC = () => {
     // If registration is successful, show success and redirect
     if (!error) {
       setIsSuccess(true);
-      setTimeout(() => {
-        navigate('/auth/login', { replace: true });
-      }, 2000);
+              setTimeout(() => {
+          navigate('/login', { replace: true });
+        }, 2000);
     }
   };
 
@@ -357,12 +357,12 @@ const Register: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-slate-400">
               Already have an account?{" "}
-              <a
-                href="/auth/login"
+              <Link
+                to="/login"
                 className="text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200"
               >
                 Sign In
-              </a>
+              </Link>
             </p>
           </div>
         </div>

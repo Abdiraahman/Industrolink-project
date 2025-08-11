@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Mail, Lock, AlertCircle } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuthContext } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 interface LoginFormData {
   email: string;
@@ -137,22 +137,22 @@ const Login: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-slate-400">
               Don't have an account?{" "}
-              <a
-                href="/auth/register"
+              <Link
+                to="/register"
                 className="text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200"
               >
                 Sign Up
-              </a>
+              </Link>
             </p>
           </div>
           {/* Forgot Password */}
           <div className="mt-4 text-center">
-            <a
-              href="/auth/forgot-password"
+            <Link
+              to="/forgot-password"
               className="text-sm text-slate-400 hover:text-slate-300 transition-colors duration-200"
             >
               Forgot your password?
-            </a>
+            </Link>
           </div>
         </div>
         {/* Footer */}

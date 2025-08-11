@@ -1,70 +1,177 @@
+# === PYTHON VIRTUAL ENVIRONMENT ===
 .venv/
+venv/
+env/
+ENV/
 *.pyc
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-
-# === BACKEND (Django DRF) ===
-industro/backend/.venv/
-industro/backend/**/__pycache__/
-industro/backend/**/*.py[cod]
-industro/backend/**/*.pyo
-industro/backend/**/*.pyd
+# === BACKEND (Django) ===
+Industrolink/backend/.venv/
+Industrolink/backend/**/__pycache__/
+Industrolink/backend/**/*.py[cod]
+Industrolink/backend/**/*.pyo
+Industrolink/backend/**/*.pyd
 
 # Django migrations (ignore compiled files but keep init)
-industro/backend/**/migrations/
-!industro/backend/**/migrations/__init__.py
+Industrolink/backend/**/migrations/
+!Industrolink/backend/**/migrations/__init__.py
 
 # DB files
-industro/backend/*.sqlite3
-industro/backend/*.db
+Industrolink/backend/*.sqlite3
+Industrolink/backend/*.db
+Industrolink/backend/db.sqlite3
+Industrolink/backend/db.sqlite3-journal
 
 # Django local env
-industro/backend/.env
-industro/backend/.env.*
+Industrolink/backend/.env
+Industrolink/backend/.env.*
+Industrolink/backend/.env.local
+Industrolink/backend/.env.development
+Industrolink/backend/.env.production
 
 # Coverage and testing
-.industro/backend/htmlcov/
-.industro/backend/.coverage
-.industro/backend/.pytest_cache/
-.industro/backend/.mypy_cache/
-.industro/backend/.tox/
+Industrolink/backend/htmlcov/
+Industrolink/backend/.coverage
+Industrolink/backend/.coverage.*
+Industrolink/backend/.pytest_cache/
+Industrolink/backend/.mypy_cache/
+Industrolink/backend/.tox/
+Industrolink/backend/.cache/
+Industrolink/backend/coverage.xml
+Industrolink/backend/.coveragerc
+
+# Django static files
+Industrolink/backend/staticfiles/
+Industrolink/backend/media/
+Industrolink/backend/static/
 
 # === FRONTEND (React + Vite + TypeScript) ===
-industro/frontend/node_modules/
-industro/frontend/dist/
-industro/frontend/dist-ssr/
-industro/frontend/.env
-industro/frontend/.env.*
+Industrolink/frontend/node_modules/
+Industrolink/frontend/dist/
+Industrolink/frontend/dist-ssr/
+Industrolink/frontend/.env
+Industrolink/frontend/.env.*
+Industrolink/frontend/.env.local
+Industrolink/frontend/.env.development
+Industrolink/frontend/.env.production
 
 # Logs
-industro/frontend/npm-debug.log*
-industro/frontend/yarn-debug.log*
-industro/frontend/yarn-error.log*
-industro/frontend/pnpm-debug.log*
-industro/frontend/lerna-debug.log*
+Industrolink/frontend/npm-debug.log*
+Industrolink/frontend/yarn-debug.log*
+Industrolink/frontend/yarn-error.log*
+Industrolink/frontend/pnpm-debug.log*
+Industrolink/frontend/lerna-debug.log*
+Industrolink/frontend/*.log
 
 # Vite cache
-industro/frontend/.vite/
+Industrolink/frontend/.vite/
+Industrolink/frontend/.vite-cache/
 
 # TypeScript cache
-industro/frontend/tsconfig.tsbuildinfo
+Industrolink/frontend/tsconfig.tsbuildinfo
+Industrolink/frontend/.tsbuildinfo
+
+# Build outputs
+Industrolink/frontend/build/
+Industrolink/frontend/out/
+Industrolink/frontend/.next/
+Industrolink/frontend/.nuxt/
 
 # === GLOBAL (IDE/OS) ===
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+desktop.ini
 
 # VSCode and JetBrains
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
 .idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.sublime-project
+*.sublime-workspace
+
+# === TEMPORARY FILES ===
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
+*~
+.#*
+\#*#
+
+# === OS GENERATED FILES ===
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# === LOGS ===
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# === RUNTIME DATA ===
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# === COVERAGE DIRECTORY ===
+coverage/
+*.lcov
+
+# === NYPM ===
+.npm
+.eslintcache
 
 # === OPTIONAL: Docker / CI (uncomment if needed) ===
 # .docker/
 # docker-compose.override.yml
 # .env.docker
+# .dockerignore
+
+# === PROJECT SPECIFIC ===
+# Add any project-specific files or folders here
+Industrolink/backend/local_settings.py
+Industrolink/backend/settings_local.py
 
