@@ -1,223 +1,5 @@
-// import React, { useState } from 'react';
-// import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-// import { 
-//   Home, 
-//   User, 
-//   FileText, 
-//   ClipboardCheck, 
-//   Briefcase, 
-//   Users, 
-//   BarChart3, 
-//   Settings, 
-//   LogOut,
-//   Menu,
-//   X
-// } from 'lucide-react';
-// import { useAuthExtended } from '../../hooks/useAuthExtended';
-// import { useSession } from '../../hooks/useSession';
-// import { useActivityTracker } from '../../hooks/useActivityTracker';
-// import SessionWarning from '../auth/SessionWarning';
-// import { getNavRoutesForRole } from '../../utils/routeConfig';
-// import PermissionGuard from '../auth/PermissionGuard';
-
-// const MainLayout: React.FC = () => {
-//   const { user, logout } = useAuthExtended();
-//   const { trackPageView } = useActivityTracker();
-//   const navigate = useNavigate();
-//   const location = useLocation();
-//   const [sidebarOpen, setSidebarOpen] = useState(false);
-//   const [showSessionWarning, setShowSessionWarning] = useState(false);
-//   const [warningTime, setWarningTime] = useState(0);
-
-//   // Session management
-//   useSession({
-//     timeout: 30, // 30 minutes
-//     warningTime: 5, // 5 minutes before timeout
-//     onWarning: (time) => {
-//       setWarningTime(time);
-//       setShowSessionWarning(true);
-//     },
-//     onTimeout: () => {
-//       trackPageView('session_timeout');
-//       logout();
-//     }
-//   });
-
-//   // Track page views
-//   React.useEffect(() => {
-//     trackPageView(location.pathname);
-//   }, [location.pathname, trackPageView]);
-
-//   const handleLogout = () => {
-//     trackPageView('logout');
-//     logout();
-//     navigate('/auth/login');
-//   };
-
-//   const handleExtendSession = () => {
-//     setShowSessionWarning(false);
-//     // The session hook will automatically reset the timer
-//   };
-
-//   const handleSessionLogout = () => {
-//     setShowSessionWarning(false);
-//     handleLogout();
-//   };
-
-//   const navRoutes = user ? getNavRoutesForRole(user.role) : [];
-
-//   const getIcon = (iconName?: string) => {
-//     switch (iconName) {
-//       case 'home': return <Home className="w-5 h-5" />;
-//       case 'user': return <User className="w-5 h-5" />;
-//       case 'file-text': return <FileText className="w-5 h-5" />;
-//       case 'clipboard-check': return <ClipboardCheck className="w-5 h-5" />;
-//       case 'briefcase': return <Briefcase className="w-5 h-5" />;
-//       case 'users': return <Users className="w-5 h-5" />;
-//       case 'bar-chart': return <BarChart3 className="w-5 h-5" />;
-//       case 'settings': return <Settings className="w-5 h-5" />;
-//       default: return <Home className="w-5 h-5" />;
-//     }
-//   };
-
-//   if (!user) {
-//     return <Outlet />;
-//   }
-
-//   return (
-//     <div className="min-h-screen bg-slate-900">
-//       {/* Mobile sidebar overlay */}
-//       {sidebarOpen && (
-//         <div 
-//           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-//           onClick={() => setSidebarOpen(false)}
-//         />
-//       )}
-
-//       {/* Sidebar */}
-//       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-//         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-//       }`}>
-//         <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700">
-//           <h1 className="text-xl font-bold text-white">Industrolink</h1>
-//           <button
-//             onClick={() => setSidebarOpen(false)}
-//             className="lg:hidden text-slate-400 hover:text-white"
-//           >
-//             <X className="w-6 h-6" />
-//           </button>
-//         </div>
-
-//         <nav className="mt-6 px-3">
-//           <div className="space-y-1">
-//             {navRoutes.map((route) => (
-//               <PermissionGuard
-//                 key={route.path}
-//                 permissions={route.requiredPermissions}
-//                 showFallback={false}
-//               >
-//                 <button
-//                   onClick={() => {
-//                     navigate(route.path);
-//                     setSidebarOpen(false);
-//                   }}
-//                   className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-//                     location.pathname === route.path
-//                       ? 'bg-blue-600 text-white'
-//                       : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-//                   }`}
-//                 >
-//                   {getIcon(route.icon)}
-//                   <span className="ml-3">{route.title}</span>
-//                 </button>
-//               </PermissionGuard>
-//             ))}
-//           </div>
-//         </nav>
-
-//         {/* User section */}
-//         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
-//           <div className="flex items-center justify-between">
-//             <div className="flex items-center space-x-3">
-//               <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-//                 <span className="text-white text-sm font-medium">
-//                   {user.name.charAt(0).toUpperCase()}
-//                 </span>
-//               </div>
-//               <div>
-//                 <p className="text-sm font-medium text-white">{user.name}</p>
-//                 <p className="text-xs text-slate-400 capitalize">{user.role}</p>
-//               </div>
-//             </div>
-//             <button
-//               onClick={handleLogout}
-//               className="text-slate-400 hover:text-white transition-colors"
-//               title="Logout"
-//             >
-//               <LogOut className="w-5 h-5" />
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Main content */}
-//       <div className="lg:pl-64">
-//         {/* Top bar */}
-//         <div className="h-16 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-6">
-//           <button
-//             onClick={() => setSidebarOpen(true)}
-//             className="lg:hidden text-slate-400 hover:text-white"
-//           >
-//             <Menu className="w-6 h-6" />
-//           </button>
-          
-//           <div className="flex items-center space-x-4">
-//             <h2 className="text-lg font-medium text-white">
-//               {navRoutes.find(r => r.path === location.pathname)?.title || 'Dashboard'}
-//             </h2>
-//           </div>
-
-//           <div className="flex items-center space-x-4">
-//             <PermissionGuard permission="read:profile">
-//               <button
-//                 onClick={() => navigate('/profile')}
-//                 className="text-slate-400 hover:text-white transition-colors"
-//                 title="Profile"
-//               >
-//                 <User className="w-5 h-5" />
-//               </button>
-//             </PermissionGuard>
-//           </div>
-//         </div>
-
-//         {/* Page content */}
-//         <main className="p-6">
-//           <Outlet />
-//         </main>
-//       </div>
-
-//       {/* Session warning modal */}
-//       {showSessionWarning && (
-//         <SessionWarning
-//           remainingTime={warningTime}
-//           onExtend={handleExtendSession}
-//           onLogout={handleSessionLogout}
-//         />
-//       )}
-//     </div>
-//   );
-// };
-
-// export default MainLayout;
-
-
-
-
-
-
-
-
 import React, { useState } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, 
   FileText, 
@@ -234,36 +16,30 @@ import { useAuthExtended } from '../../hooks/useAuthExtended';
 import PermissionGuard from '../auth/PermissionGuard';
 import { Button } from '@/components/ui/button';
 import { Permission } from '../../utils/permissions';
-import { User, UserRole } from '../../types/user'; // Import the actual User and UserRole types
-
-type TabType = 'dashboard' | 'daily-report' | 'task-management' | 'weekly-review' | 'feedback-management' | 'profile-edit' | 'user-management';
+import { User, UserRole } from '../../types/user';
 
 interface LayoutProps {
-  children: React.ReactNode;
-  activeTab: TabType;
-  setActiveTab: (tab: TabType) => void;
   user: User;
   onLogout: () => void;
 }
 
 interface MenuItem {
-  id: TabType;
+  path: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   permission?: Permission;
   permissions?: Permission[];
-  roles?: UserRole[]; // Use the actual UserRole type
+  roles?: UserRole[];
 }
 
 const MainLayout: React.FC<LayoutProps> = ({ 
-  children, 
-  activeTab, 
-  setActiveTab, 
   user, 
   onLogout 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { checkPermission, isRole, isAnyRole } = useAuthExtended();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Debug: Log the user object to see its structure
   console.log('User object in MainLayout:', user);
@@ -294,51 +70,51 @@ const MainLayout: React.FC<LayoutProps> = ({
     return 'U';
   };
 
-  // Define menu items with their permissions
+  // Define menu items with their paths and permissions
   const menuItems: MenuItem[] = [
     {
-      id: 'dashboard',
+      path: '/dashboard',
       label: 'Dashboard',
       icon: Home,
       permission: 'read:profile'
     },
     {
-      id: 'daily-report',
+      path: '/tasks/daily-report',
       label: 'Daily Report',
       icon: FileText,
       permission: 'write:submissions',
       roles: ['student']
     },
     {
-      id: 'task-management',
+      path: '/tasks/management',
       label: 'Task Management',
       icon: ClipboardCheck,
       permission: 'read:submissions',
       roles: ['supervisor', 'lecturer', 'admin']
     },
     {
-      id: 'weekly-review',
+      path: '/feedback/weekly-review',
       label: 'Weekly Review',
       icon: MessageSquare,
       permission: 'read:evaluations',
       roles: ['student']
     },
     {
-      id: 'feedback-management',
+      path: '/feedback/management',
       label: 'Feedback Management',
       icon: BarChart3,
       permission: 'write:evaluations',
       roles: ['supervisor', 'lecturer', 'admin']
     },
     {
-      id: 'user-management',
+      path: '/users/management',
       label: 'User Management',
       icon: Users,
       permission: 'read:users',
       roles: ['admin']
     },
     {
-      id: 'profile-edit',
+      path: '/profile/edit',
       label: 'Settings',
       icon: Settings,
       permission: 'read:profile'
@@ -366,26 +142,48 @@ const MainLayout: React.FC<LayoutProps> = ({
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
-  const handleMenuClick = (itemId: TabType) => {
-    setActiveTab(itemId);
+  const handleMenuClick = (path: string) => {
+    navigate(path);
     setIsOpen(false); // Close mobile menu
   };
 
   const getPageTitle = () => {
-    const currentItem = menuItems.find(item => item.id === activeTab);
-    if (activeTab === 'dashboard') {
+    // Safely handle location.pathname
+    if (!location || !location.pathname) {
+      return 'Dashboard';
+    }
+    
+    const currentItem = menuItems.find(item => item.path === location.pathname);
+    if (location.pathname === '/dashboard') {
       return `${user.role.charAt(0).toUpperCase() + user.role.slice(1)} Dashboard`;
     }
     return currentItem?.label || 'Dashboard';
   };
 
   const getWelcomeMessage = () => {
-    if (activeTab === 'dashboard') {
+    // Safely handle location.pathname
+    if (!location || !location.pathname) {
+      return null;
+    }
+    
+    if (location.pathname === '/dashboard') {
       const displayName = getUserDisplayName();
       const firstName = displayName.split(' ')[0];
       return `Welcome, ${firstName}!`;
     }
     return null;
+  };
+
+  const isActiveRoute = (path: string) => {
+    // Safely handle location.pathname
+    if (!location || !location.pathname) {
+      return false;
+    }
+    
+    if (path === '/dashboard') {
+      return location.pathname === '/dashboard';
+    }
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -439,12 +237,13 @@ const MainLayout: React.FC<LayoutProps> = ({
           <ul className="space-y-2">
             {visibleMenuItems.map((item) => {
               const Icon = item.icon;
+              const isActive = isActiveRoute(item.path);
               return (
-                <li key={item.id}>
+                <li key={item.path}>
                   <button
-                    onClick={() => handleMenuClick(item.id)}
+                    onClick={() => handleMenuClick(item.path)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      activeTab === item.id
+                      isActive
                         ? 'bg-navy-700 text-white'
                         : 'text-gray-300 hover:bg-navy-800 hover:text-white'
                     }`}
@@ -497,7 +296,9 @@ const MainLayout: React.FC<LayoutProps> = ({
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto p-4 md:p-6">
-          {children}
+          {/* <Outlet /> */}
+          {/* The children prop was removed, so we'll render the Outlet directly */}
+          <Outlet />
         </main>
       </div>
     </div>

@@ -18,7 +18,7 @@ const Unauthorized: React.FC = () => {
             Go to Dashboard
           </Link>
           <Link
-            to="/auth/login"
+            to="/login"
             className="block w-full bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700 transition-colors"
           >
             Back to Login
