@@ -29,4 +29,8 @@ class LecturerProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
+        # Check if user has a lecturer profile
+        if not hasattr(self.request.user, 'lecturer_profile'):
+            from rest_framework.exceptions import NotFound
+            raise NotFound("Lecturer profile not found")
         return self.request.user.lecturer_profile

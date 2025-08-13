@@ -4,24 +4,28 @@ from lecturers.models import Lecturer
 from supervisors.models import Supervisor, Company
 
 class CompanyRegistrationSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(source='company_id', read_only=True)
+    
     class Meta:
         model = Company
-        fields = [
-            'name', 'address', 'phone_number', 'email', 
-        ]
+        fields = ['id', 'name', 'address', 'phone_number', 'email']
+        read_only_fields = ['id']
 
     def create(self, data):
         company = Company.objects.create(**data)
         company.save()
+        # Return the company with all fields including id
         return company
 
 
 # supervisors/serializers.py
 class CompanySerializer(serializers.ModelSerializer):
+    id = serializers.CharField(source='company_id', read_only=True)
+    
     class Meta:
         model = Company
-        fields = ['company_id', 'name', 'address', 'phone_number', 'email']
-        read_only_fields = ['company_id']
+        fields = ['id', 'name', 'address', 'phone_number', 'email']
+        read_only_fields = ['id']
 
 
 class SupervisorProfileSerializer(serializers.ModelSerializer):

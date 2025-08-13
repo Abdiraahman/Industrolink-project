@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Tag, Wrench, Award, CheckCircle, XCircle, Eye } from 'lucide-react';
-import { DailyTask, TASK_CATEGORIES } from '@/types/task';
+import { DailyTask, TaskCategory } from '@/types/task';
+import { dailyTasksAPI } from '@/services/api/dailyTasks';
 
 interface DailyTaskHistoryProps {
   studentId?: string;
@@ -14,70 +15,82 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
   const [tasks, setTasks] = useState<DailyTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<DailyTask | null>(null);
+  const [categories, setCategories] = useState<TaskCategory[]>([]);
 
-  // Mock data - replace with actual API call
+  // Load categories and tasks
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetchData = async () => {
       setLoading(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock data
-      const mockTasks: DailyTask[] = [
-        {
-          id: '1',
-          student: 'student-123',
-          date: '2024-01-15',
-          description: 'Worked on implementing user authentication system using JWT tokens. Fixed several bugs related to token expiration and refresh logic.',
-          task_category: TASK_CATEGORIES[0], // Development
-          tools_used: ['Visual Studio Code', 'Git', 'Postman', 'Chrome DevTools'],
-          skills_applied: ['Problem Solving', 'Backend Development', 'API Development', 'Debugging'],
-          hours_spent: 8.5,
-          approved: true,
-          created_at: '2024-01-15T09:00:00Z',
-          updated_at: '2024-01-15T17:30:00Z',
-          week_number: 3,
-          iso_year: 2024
-        },
-        {
-          id: '2',
-          student: 'student-123',
-          date: '2024-01-14',
-          description: 'Designed wireframes for the new dashboard interface. Created prototypes in Figma and conducted user research.',
-          task_category: TASK_CATEGORIES[1], // Design
-          tools_used: ['Figma', 'Adobe Photoshop', 'Notion'],
-          skills_applied: ['UI/UX Design', 'Research', 'Communication', 'Critical Thinking'],
-          hours_spent: 7.0,
-          approved: true,
-          created_at: '2024-01-14T09:00:00Z',
-          updated_at: '2024-01-14T16:00:00Z',
-          week_number: 3,
-          iso_year: 2024
-        },
-        {
-          id: '3',
-          student: 'student-123',
-          date: '2024-01-13',
-          description: 'Attended team meeting and sprint planning session. Reviewed code for the payment integration module.',
-          task_category: TASK_CATEGORIES[5], // Meeting
-          tools_used: ['Slack', 'Jira', 'GitHub'],
-          skills_applied: ['Teamwork', 'Code Review', 'Project Management'],
-          hours_spent: 4.5,
-          approved: false,
-          created_at: '2024-01-13T09:00:00Z',
-          updated_at: '2024-01-13T13:30:00Z',
-          week_number: 2,
-          iso_year: 2024
-        }
-      ];
-      
-      setTasks(mockTasks.slice(0, limit));
-      setLoading(false);
+      try {
+        // Fetch categories first
+        const fetchedCategories = await dailyTasksAPI.getTaskCategories();
+        setCategories(fetchedCategories || []);
+        
+        // Fetch tasks
+        const tasksResponse = await dailyTasksAPI.getDailyTasks(studentId, { limit });
+        setTasks(tasksResponse.results || []);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        // Fallback to mock data if API fails
+        setCategories([]); // Ensure categories is always an array
+        setTasks(getMockTasks());
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchTasks();
+    fetchData();
   }, [studentId, limit]);
+
+  // Mock data fallback
+  const getMockTasks = (): DailyTask[] => [
+    {
+      id: '1',
+      student: 'student-123',
+      date: '2024-01-15',
+      description: 'Worked on implementing user authentication system using JWT tokens. Fixed several bugs related to token expiration and refresh logic.',
+      task_category: { id: '1', name: 'Development', color: '#3B82F6' },
+      tools_used: ['Visual Studio Code', 'Git', 'Postman', 'Chrome DevTools'],
+      skills_applied: ['Problem Solving', 'Backend Development', 'API Development', 'Debugging'],
+      hours_spent: 8.5,
+      approved: true,
+      created_at: '2024-01-15T09:00:00Z',
+      updated_at: '2024-01-15T17:30:00Z',
+      week_number: 3,
+      iso_year: 2024
+    },
+    {
+      id: '2',
+      student: 'student-123',
+      date: '2024-01-14',
+      description: 'Designed wireframes for the new dashboard interface. Created prototypes in Figma and conducted user research.',
+      task_category: { id: '2', name: 'Design', color: '#EF4444' },
+      tools_used: ['Figma', 'Adobe Photoshop', 'Notion'],
+      skills_applied: ['UI/UX Design', 'Research', 'Communication', 'Critical Thinking'],
+      hours_spent: 7.0,
+      approved: true,
+      created_at: '2024-01-14T09:00:00Z',
+      updated_at: '2024-01-14T16:00:00Z',
+      week_number: 3,
+      iso_year: 2024
+    },
+    {
+      id: '3',
+      student: 'student-123',
+      date: '2024-01-13',
+      description: 'Attended team meeting and sprint planning session. Reviewed code for the payment integration module.',
+      task_category: { id: '6', name: 'Meeting', color: '#06B6D4' },
+      tools_used: ['Slack', 'Jira', 'GitHub'],
+      skills_applied: ['Teamwork', 'Code Review', 'Project Management'],
+      hours_spent: 4.5,
+      approved: false,
+      created_at: '2024-01-13T09:00:00Z',
+      updated_at: '2024-01-13T13:30:00Z',
+      week_number: 2,
+      iso_year: 2024
+    }
+  ];
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -89,13 +102,16 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
   };
 
   const getCategoryColor = (categoryId: string) => {
-    const category = TASK_CATEGORIES.find(cat => cat.id === categoryId);
+    if (!categories || !Array.isArray(categories)) {
+      return '#6B7280';
+    }
+    const category = categories.find(cat => cat.id === categoryId);
     return category?.color || '#6B7280';
   };
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border border-gray-200">
         <CardContent className="pt-6">
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -109,13 +125,13 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-900">Recent Daily Tasks</h2>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="text-sm">
           View All
         </Button>
       </div>
 
-      {tasks.length === 0 ? (
-        <Card>
+      {!tasks || tasks.length === 0 ? (
+        <Card className="border border-gray-200">
           <CardContent className="pt-6">
             <div className="text-center py-8">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -125,21 +141,21 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
         </Card>
       ) : (
         <div className="space-y-4">
-          {tasks.map((task) => (
-            <Card key={task.id} className="hover:shadow-md transition-shadow">
+          {tasks && tasks.map((task) => (
+            <Card key={task.id || `task-${Math.random()}`} className="hover:shadow-md transition-shadow border border-gray-200">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
                     <div 
                       className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: task.task_category.color }}
+                      style={{ backgroundColor: task.task_category?.color || '#6B7280' }}
                     />
                     <div>
                       <CardTitle className="text-lg">{formatDate(task.date)}</CardTitle>
                       <CardDescription className="flex items-center space-x-4 mt-1">
                         <span className="flex items-center space-x-1">
                           <Tag className="h-3 w-3" />
-                          <span>{task.task_category.name}</span>
+                          <span>{task.task_category?.name || 'Unknown Category'}</span>
                         </span>
                         <span className="flex items-center space-x-1">
                           <Clock className="h-3 w-3" />
@@ -168,7 +184,7 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
                 {/* Task Description */}
                 <div>
                   <p className="text-gray-700 text-sm leading-relaxed">
-                    {task.description.length > 150 
+                    {task.description?.length > 150 
                       ? `${task.description.substring(0, 150)}...` 
                       : task.description
                     }
@@ -178,7 +194,7 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
                 {/* Tools and Skills */}
                 <div className="grid md:grid-cols-2 gap-4">
                   {/* Tools Used */}
-                  {task.tools_used.length > 0 && (
+                  {task.tools_used && task.tools_used.length > 0 && (
                     <div>
                       <div className="flex items-center space-x-1 mb-2">
                         <Wrench className="h-4 w-4 text-gray-600" />
@@ -200,7 +216,7 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
                   )}
 
                   {/* Skills Applied */}
-                  {task.skills_applied.length > 0 && (
+                  {task.skills_applied && task.skills_applied.length > 0 && (
                     <div>
                       <div className="flex items-center space-x-1 mb-2">
                         <Award className="h-4 w-4 text-gray-600" />
@@ -208,12 +224,12 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
                       </div>
                       <div className="flex flex-wrap gap-1">
                         {task.skills_applied.slice(0, 3).map((skill) => (
-                          <Badge key={skill} variant="secondary" className="text-xs">
+                          <Badge key={skill} variant="outline" className="text-xs">
                             {skill}
                           </Badge>
                         ))}
                         {task.skills_applied.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="outline" className="text-xs">
                             +{task.skills_applied.length - 3} more
                           </Badge>
                         )}
@@ -242,16 +258,16 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
 
       {/* Task Detail Modal - You can implement this as a proper modal */}
       {selectedTask && (
-        <Card className="fixed inset-0 z-50 bg-white shadow-2xl overflow-auto">
-          <CardHeader>
+        <Card className="fixed inset-0 z-50 bg-white shadow-2xl overflow-auto border border-gray-200">
+          <CardHeader className="border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <CardTitle>Task Details - {formatDate(selectedTask.date)}</CardTitle>
-              <Button variant="ghost" onClick={() => setSelectedTask(null)}>
+              <CardTitle className="text-xl">Task Details - {formatDate(selectedTask.date)}</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedTask(null)} className="text-gray-500">
                 ×
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 p-6">
             <div>
               <h3 className="font-semibold mb-2">Description</h3>
               <p className="text-gray-700">{selectedTask.description}</p>
@@ -262,7 +278,7 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
                 <h3 className="font-semibold mb-2">Tools Used</h3>
                 <div className="flex flex-wrap gap-2">
                   {selectedTask.tools_used.map((tool) => (
-                    <Badge key={tool} variant="outline">{tool}</Badge>
+                    <Badge key={tool} variant="outline" className="text-sm">{tool}</Badge>
                   ))}
                 </div>
               </div>
@@ -271,7 +287,7 @@ const DailyTaskHistory: React.FC<DailyTaskHistoryProps> = ({ studentId, limit = 
                 <h3 className="font-semibold mb-2">Skills Applied</h3>
                 <div className="flex flex-wrap gap-2">
                   {selectedTask.skills_applied.map((skill) => (
-                    <Badge key={skill} variant="secondary">{skill}</Badge>
+                    <Badge key={skill} variant="secondary" className="text-sm">{skill}</Badge>
                   ))}
                 </div>
               </div>

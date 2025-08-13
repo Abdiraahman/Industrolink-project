@@ -45,6 +45,14 @@ class TaskCategory(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    is_user_created = models.BooleanField(default=False, help_text="Whether this category was created by a user")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_categories'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:

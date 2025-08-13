@@ -1,52 +1,3 @@
-# from rest_framework import serializers
-# from django.contrib.auth import get_user_model
-# # from students.models import Student
-# from lecturers.models import Lecturer
-# from supervisors.models import Supervisor, Company
-
-# Student = get_user_model()  # Assuming Student is a custom user model
-
-# class StudentProfileSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Student
-#         fields = [
-#             'student_id', 'registration_no', 'academic_year', 'course',
-#             'year_of_study', 'company_name', 'company_address',
-#             'duration_in_weeks', 'start_date', 'completion_date'
-#         ]
-#         read_only_fields = ['student_id']
-    
-#     def create(self, validated_data):
-#         # Get user from request context
-#         user = self.context['request'].user
-#         student = Student.objects.create(user=user, **validated_data)
-        
-#         # Mark user profile as completed
-#         user.profile_completed = True
-#         user.save()
-        
-#         return student
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# students/serializers.py
 from rest_framework import serializers
 from .models import Student
 from django.utils import timezone
@@ -57,8 +8,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         model = Student
         fields = [
             'student_id', 'registration_no', 'academic_year', 'course',
-            'year_of_study', 'company_name', 'company_address',
-            'duration_in_weeks', 'start_date', 'completion_date'
+            'year_of_study', 'company', 'duration_in_weeks', 'start_date', 'completion_date'
         ]
         read_only_fields = ['student_id']
     
@@ -88,8 +38,15 @@ from .models import DailyTask, TaskCategory
 class TaskCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskCategory
-        fields = ['id', 'name', 'description', 'is_active']
-        read_only_fields = ['id']
+        fields = ['id', 'name', 'description', 'is_active', 'is_user_created', 'created_by', 'created_at']
+        read_only_fields = ['id', 'created_at']
+    
+    def create(self, validated_data):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            validated_data['created_by'] = request.user
+            validated_data['is_user_created'] = True
+        return super().create(validated_data)
 
 
 class DailyTaskSerializer(serializers.ModelSerializer):
@@ -153,12 +110,31 @@ class DailyTaskCreateSerializer(serializers.ModelSerializer):
             # Create or get existing category
             category, created = TaskCategory.objects.get_or_create(
                 name__iexact=task_category_name.strip(),
-                defaults={'name': task_category_name.strip()}
+                defaults={
+                    'name': task_category_name.strip(),
+                    'description': f'User-created category: {task_category_name.strip()}',
+                    'is_user_created': True,
+                    'created_by': self.context.get('request').user if self.context.get('request') else None
+                }
             )
             attrs['task_category'] = category
             attrs.pop('task_category_name', None)
         
         return attrs
+    
+    def validate_tools_used(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Tools used must be a list")
+        # Filter out empty strings and ensure uniqueness
+        filtered_tools = list(set([str(item).strip() for item in value if item and str(item).strip()]))
+        return filtered_tools
+    
+    def validate_skills_applied(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Skills applied must be a list")
+        # Filter out empty strings and ensure uniqueness
+        filtered_skills = list(set([str(item).strip() for item in value if item and str(item).strip()]))
+        return filtered_skills
     
     def validate_date(self, value):
         # Date validation removed since it's auto-generated

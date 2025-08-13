@@ -40,7 +40,6 @@ export const useActivityTracker = () => {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         },
         credentials: 'include',
         body: JSON.stringify(event)
