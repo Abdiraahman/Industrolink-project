@@ -7,14 +7,11 @@ export const securityHeaders = {
 };
 
 export const createSecureRequest = (url: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('authToken');
-  
   return fetch(url, {
     ...options,
     headers: {
       ...securityHeaders,
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
       ...options.headers
     },
     credentials: 'include'
@@ -44,7 +41,6 @@ export const validateResponse = async (response: Response): Promise<Response> =>
   if (!response.ok) {
     if (response.status === 401) {
       // Handle unauthorized - redirect to login
-      localStorage.removeItem('authToken');
       window.location.href = '/auth/login';
       throw new Error('Unauthorized access');
     }

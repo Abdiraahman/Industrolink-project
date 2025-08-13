@@ -9,6 +9,7 @@ export type UserRole = 'student' | 'lecturer' | 'supervisor' | 'admin';
 // - permissions: (Optional) Additional permissions (if any, for future extension)
 // - lastLogin: (Optional) Last login timestamp
 // - isActive: (Optional) Whether the user account is active
+// - profile_completed: Whether the user has completed their role-specific profile
 export interface User {
   id: string
   email: string
@@ -21,4 +22,5 @@ export interface User {
   permissions?: string[]
   lastLogin?: Date
   isActive?: boolean
+  profile_completed?: boolean
 }

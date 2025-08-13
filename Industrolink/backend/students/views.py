@@ -41,6 +41,10 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
+        # Check if user has a student profile
+        if not hasattr(self.request.user, 'student_profile'):
+            from rest_framework.exceptions import NotFound
+            raise NotFound("Student profile not found")
         return self.request.user.student_profile
 
 
@@ -68,7 +72,16 @@ class TaskCategoryListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return TaskCategory.objects.filter(is_active=True)
+        return TaskCategory.objects.filter(is_active=True).order_by('name')
+    
+    def create(self, request, *args, **kwargs):
+        # Allow students to create new categories
+        if request.user.role != 'student':
+            return Response({
+                'error': 'Only students can create task categories'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        return super().create(request, *args, **kwargs)
 
 
 class DailyTaskCreateView(generics.CreateAPIView):

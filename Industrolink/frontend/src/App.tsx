@@ -24,6 +24,7 @@ import FeedbackManagement from './pages/feedback/FeedbackManagement';
 
 // Profile Pages
 import ProfileEdit from './pages/profile/ProfileEdit';
+import ProfileSetup from './pages/profile/ProfileSetup';
 import UserManagement from './pages/profile/UserManagement';
 
 // System Pages
@@ -88,7 +89,11 @@ function App(): React.ReactElement {
         {/* Protected Routes - Dashboard */}
         <Route path="/dashboard" element={
           isAuthenticated && user ? (
-            <MainLayout user={user} onLogout={logout} />
+            user.profile_completed ? (
+              <MainLayout user={user} onLogout={logout} />
+            ) : (
+              <Navigate to="/profile/setup" replace />
+            )
           ) : (
             <Navigate to="/login" replace />
           )
@@ -165,6 +170,11 @@ function App(): React.ReactElement {
           <Route path="edit" element={
             <PermissionGuard permission="read:profile">
               <ProfileEdit />
+            </PermissionGuard>
+          } />
+          <Route path="setup" element={
+            <PermissionGuard permission="read:profile">
+              <ProfileSetup />
             </PermissionGuard>
           } />
         </Route>

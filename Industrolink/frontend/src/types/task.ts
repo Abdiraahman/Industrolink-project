@@ -3,6 +3,9 @@ export interface TaskCategory {
   name: string;
   description?: string;
   color?: string;
+  is_user_created?: boolean;
+  created_by?: string;
+  created_at?: string;
 }
 
 export interface DailyTask {
@@ -84,13 +87,5 @@ export const COMMON_SKILLS = [
   'System Architecture'
 ];
 
-export const TASK_CATEGORIES: TaskCategory[] = [
-  { id: '1', name: 'Development', description: 'Software development tasks', color: '#3B82F6' },
-  { id: '2', name: 'Design', description: 'UI/UX design tasks', color: '#EF4444' },
-  { id: '3', name: 'Testing', description: 'Quality assurance and testing', color: '#10B981' },
-  { id: '4', name: 'Research', description: 'Research and analysis tasks', color: '#F59E0B' },
-  { id: '5', name: 'Documentation', description: 'Documentation and writing', color: '#8B5CF6' },
-  { id: '6', name: 'Meeting', description: 'Meetings and discussions', color: '#06B6D4' },
-  { id: '7', name: 'Training', description: 'Learning and training activities', color: '#84CC16' },
-  { id: '8', name: 'Administration', description: 'Administrative tasks', color: '#6B7280' },
-];
+// Remove hardcoded categories since we'll fetch from backend
+// export const TASK_CATEGORIES: TaskCategory[] = [...];
