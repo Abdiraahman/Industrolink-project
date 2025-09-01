@@ -79,6 +79,20 @@ const MainLayout: React.FC<LayoutProps> = ({
       permission: 'read:profile'
     },
     {
+      path: '/supervisor/students',
+      label: 'Company Students',
+      icon: Users,
+      permission: 'read:students',
+      roles: ['supervisor']
+    },
+    {
+      path: '/lecturer/students',
+      label: 'Assigned Students',
+      icon: Users,
+      permission: 'read:students',
+      roles: ['lecturer']
+    },
+    {
       path: '/tasks/daily-report',
       label: 'Daily Report',
       icon: FileText,
@@ -107,7 +121,7 @@ const MainLayout: React.FC<LayoutProps> = ({
       roles: ['supervisor', 'lecturer', 'admin']
     },
     {
-      path: '/users/management',
+      path: '/admin/users',
       label: 'User Management',
       icon: Users,
       permission: 'read:users',

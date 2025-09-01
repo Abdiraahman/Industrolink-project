@@ -5,10 +5,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth import authenticate
-from .serializers import UserRegistrationSerializer, UserSerializer
+from .serializers import UserRegistrationSerializer, UserSerializer, EmailVerificationSerializer, ResendVerificationSerializer
 from supervisors.serializers import CompanySerializer, CompanyRegistrationSerializer
 from django.http import JsonResponse
 from django.conf import settings
+from .utils import generate_verification_token, send_verification_email, verify_email_token
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
+from .models import User
 
 
 # class UserRegistrationView(generics.CreateAPIView):
@@ -124,14 +128,28 @@ class UserRegistrationView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         
+        # Generate verification token and send verification email
+        verification_token = generate_verification_token()
+        user.email_verification_token = verification_token
+        user.email_verification_sent_at = timezone.now()
+        user.save()
+        
+        # Build verification URL
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+        verification_url = f"{frontend_url}/verify-email?token={verification_token}&email={user.email}"
+        
+        # Send verification email
+        email_sent = send_verification_email(user, verification_url)
+        
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
         access_token = refresh.access_token
         
         # Create response with user data (no tokens in JSON)
         response_data = {
-            'message': 'User registered successfully',
+            'message': 'User registered successfully. Please check your email to verify your account.',
             'user': UserSerializer(user).data,
+            'email_verification_sent': email_sent,
         }
         
         response = Response(response_data, status=status.HTTP_201_CREATED)
@@ -370,4 +388,102 @@ class CompanyRegistrationView(generics.CreateAPIView):
             'message': 'Company registered successfully',
             'company': CompanySerializer(company).data,
         }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def verify_email_view(request):
+    """
+    Verify user email with token
+    """
+    serializer = EmailVerificationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    
+    email = serializer.validated_data['email']
+    token = serializer.validated_data['token']
+    
+    try:
+        user = get_object_or_404(User, email=email)
+        
+        if user.email_verified:
+            return Response({
+                'message': 'Email is already verified'
+            }, status=status.HTTP_200_OK)
+        
+        success, message = verify_email_token(user, token)
+        
+        if success:
+            return Response({
+                'message': message,
+                'user': UserSerializer(user).data
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'error': message
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        return Response({
+            'error': 'An error occurred during verification'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def resend_verification_email_view(request):
+    """
+    Resend verification email
+    """
+    serializer = ResendVerificationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    
+    email = serializer.validated_data['email']
+    user = get_object_or_404(User, email=email)
+    
+    # Generate new verification token
+    verification_token = generate_verification_token()
+    user.email_verification_token = verification_token
+    user.email_verification_sent_at = timezone.now()
+    user.save()
+    
+    # Build verification URL
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+    verification_url = f"{frontend_url}/verify-email?token={verification_token}&email={user.email}"
+    
+    # Send verification email
+    email_sent = send_verification_email(user, verification_url)
+    
+    if email_sent:
+        return Response({
+            'message': 'Verification email sent successfully'
+        }, status=status.HTTP_200_OK)
+    else:
+        return Response({
+            'error': 'Failed to send verification email'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def check_email_verification_status(request):
+    """
+    Check email verification status
+    """
+    email = request.GET.get('email')
+    
+    if not email:
+        return Response({
+            'error': 'Email parameter is required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = get_object_or_404(User, email=email)
+        return Response({
+            'email_verified': user.email_verified,
+            'verification_sent': user.email_verification_sent_at is not None
+        }, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({
+            'error': 'User not found'
+        }, status=status.HTTP_404_NOT_FOUND)
 

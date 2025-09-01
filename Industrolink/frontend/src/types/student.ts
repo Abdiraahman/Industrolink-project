@@ -1,16 +1,28 @@
 export interface Student {
   id: string;
+  student_id?: string;
   name: string;
   email: string;
   registration: string;
+  registration_no?: string;
   course: string;
   university: string;
   year: string;
   yearOfStudy: string;
+  year_of_study?: string;
   phoneNumber: string;
   profileComplete: boolean;
   createdAt: Date;
   updatedAt: Date;
+  
+  // Additional properties from backend
+  academic_year?: string;
+  duration_in_weeks?: number;
+  start_date?: string;
+  completion_date?: string;
+  company_name?: string;
+  user_name?: string;
+  user_email?: string;
 }
 
 export interface InternshipInfo {

@@ -1,9 +1,15 @@
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Q
 from .models import Supervisor, Company
 from .serializers import SupervisorProfileSerializer, CompanySerializer, CompanyRegistrationSerializer
+from students.models import Student
+from students.serializers import StudentProfileSerializer
+from lecturers.models import LecturerStudentAssignment
+from lecturers.serializers import LecturerStudentAssignmentSerializer, StudentListSerializer
 
 
 class CompanyListView(generics.ListAPIView):
@@ -64,3 +70,41 @@ class SupervisorProfileView(generics.RetrieveUpdateAPIView):
             from rest_framework.exceptions import NotFound
             raise NotFound("Supervisor profile not found")
         return self.request.user.supervisor_profile
+
+
+class SupervisorStudentsView(generics.ListAPIView):
+    """
+    View for supervisors to see students under their company
+    """
+    serializer_class = StudentListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        if self.request.user.role != 'supervisor':
+            return Student.objects.none()
+        
+        if not hasattr(self.request.user, 'supervisor_profile'):
+            return Student.objects.none()
+        
+        # Get students under the same company as the supervisor
+        company = self.request.user.supervisor_profile.company
+        return Student.objects.filter(company=company)
+
+
+class SupervisorLecturerAssignmentsView(generics.ListAPIView):
+    """
+    View for supervisors to see lecturer-student assignments they made
+    """
+    serializer_class = LecturerStudentAssignmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        if self.request.user.role != 'supervisor':
+            return LecturerStudentAssignment.objects.none()
+        
+        if not hasattr(self.request.user, 'supervisor_profile'):
+            return LecturerStudentAssignment.objects.none()
+        
+        return LecturerStudentAssignment.objects.filter(
+            assigned_by=self.request.user.supervisor_profile
+        )

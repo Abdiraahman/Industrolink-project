@@ -1,14 +1,18 @@
 from rest_framework import serializers
-from .models import Student
 from django.utils import timezone
-from .models import DailyTask, TaskCategory
+from .models import Student, DailyTask, TaskCategory
 
 class StudentProfileSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source='company.name', read_only=True)
+    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    
     class Meta:
         model = Student
         fields = [
             'student_id', 'registration_no', 'academic_year', 'course',
-            'year_of_study', 'company', 'duration_in_weeks', 'start_date', 'completion_date'
+            'year_of_study', 'company_name', 'duration_in_weeks', 'start_date', 'completion_date',
+            'user_name', 'user_email'
         ]
         read_only_fields = ['student_id']
     
@@ -22,17 +26,6 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         user.save()
         
         return student
-
-
-
-
-
-
-
-
-from rest_framework import serializers
-from django.utils import timezone
-from .models import DailyTask, TaskCategory
 
 
 class TaskCategorySerializer(serializers.ModelSerializer):
@@ -65,6 +58,8 @@ class DailyTaskSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'id', 'date', 'week_number', 'iso_year', 'created_at', 'updated_at'
         ]
+    
+
     
     def validate_date(self, value):
         # Date validation removed since it's auto-generated
@@ -99,14 +94,34 @@ class DailyTaskCreateSerializer(serializers.ModelSerializer):
         ]
     
     def validate(self, attrs):
+        print(f"DEBUG: Serializer validate called with attrs: {attrs}")
+        
         # Handle category creation/selection
         task_category = attrs.get('task_category')
         task_category_name = attrs.get('task_category_name')
         
+        print(f"DEBUG: task_category: {task_category}")
+        print(f"DEBUG: task_category_name: {task_category_name}")
+        
         if not task_category and not task_category_name:
-            raise serializers.ValidationError("Either task_category or task_category_name must be provided")
+            print(f"DEBUG: No category provided, checking if any exist")
+            # If no categories exist at all, create a default one
+            if TaskCategory.objects.count() == 0:
+                print(f"DEBUG: No categories exist, creating default")
+                default_category = TaskCategory.objects.create(
+                    name='General Tasks',
+                    description='Default category for daily tasks',
+                    is_active=True,
+                    is_user_created=False
+                )
+                attrs['task_category'] = default_category
+                print(f"DEBUG: Created default category: {default_category.name}")
+            else:
+                print(f"DEBUG: Categories exist but none selected")
+                raise serializers.ValidationError("Either task_category or task_category_name must be provided")
         
         if task_category_name:
+            print(f"DEBUG: Creating category from name: {task_category_name}")
             # Create or get existing category
             category, created = TaskCategory.objects.get_or_create(
                 name__iexact=task_category_name.strip(),
@@ -120,6 +135,7 @@ class DailyTaskCreateSerializer(serializers.ModelSerializer):
             attrs['task_category'] = category
             attrs.pop('task_category_name', None)
         
+        print(f"DEBUG: Final attrs: {attrs}")
         return attrs
     
     def validate_tools_used(self, value):

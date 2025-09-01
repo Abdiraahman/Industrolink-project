@@ -8,13 +8,15 @@ const LecturerDashboard = lazy(() => import('../pages/dashboard/LecturerDashboar
 const SupervisorDashboard = lazy(() => import('../pages/dashboard/SupervisorDashboard'));
 const AdminDashboard = lazy(() => import('../pages/dashboard/AdminDashboard'));
 
+// Lazy load student management components
+const SupervisorStudents = lazy(() => import('../pages/supervisor/SupervisorStudents'));
+const LecturerStudents = lazy(() => import('../pages/lecturer/LecturerStudents'));
+
 // Lazy load other components
-const Profile = lazy(() => import('../pages/Profile'));
-const Submissions = lazy(() => import('../pages/Submissions'));
-const Evaluations = lazy(() => import('../pages/Evaluations'));
-const Internships = lazy(() => import('../pages/Internships'));
-const Users = lazy(() => import('../pages/Users'));
-const Reports = lazy(() => import('../pages/Reports'));
+const Profile = lazy(() => import('../pages/profile/ProfileEdit'));
+const Tasks = lazy(() => import('../pages/tasks/TaskManagement'));
+const Feedback = lazy(() => import('../pages/feedback/FeedbackManagement'));
+const AdminUsers = lazy(() => import('../pages/admin/ManageUsers'));
 
 export interface RouteConfig {
   path: string;
@@ -31,20 +33,6 @@ export interface RouteConfig {
 }
 
 export const ROUTE_CONFIGS: RouteConfig[] = [
-  {
-    path: '/',
-    component: lazy(() => import('../pages/Home')),
-    requireAuth: false,
-    title: 'Home',
-    description: 'Welcome to Industrolink'
-  },
-  {
-    path: '/auth/login',
-    component: lazy(() => import('../pages/auth/Login')),
-    requireAuth: false,
-    title: 'Login',
-    description: 'Sign in to your account'
-  },
   {
     path: '/dashboard',
     component: StudentDashboard,
@@ -85,6 +73,26 @@ export const ROUTE_CONFIGS: RouteConfig[] = [
     showInNav: true
   },
   {
+    path: '/supervisor/students',
+    component: SupervisorStudents,
+    allowedRoles: ['supervisor'],
+    requireAuth: true,
+    title: 'Company Students',
+    description: 'Manage students under your company',
+    icon: 'users',
+    showInNav: true
+  },
+  {
+    path: '/lecturer/students',
+    component: LecturerStudents,
+    allowedRoles: ['lecturer'],
+    requireAuth: true,
+    title: 'Assigned Students',
+    description: 'Students assigned to you by supervisors',
+    icon: 'graduation-cap',
+    showInNav: true
+  },
+  {
     path: '/profile',
     component: Profile,
     requiredPermissions: ['read:profile'],
@@ -95,101 +103,70 @@ export const ROUTE_CONFIGS: RouteConfig[] = [
     showInNav: true
   },
   {
-    path: '/submissions',
-    component: Submissions,
+    path: '/tasks',
+    component: Tasks,
     requiredPermissions: ['read:submissions'],
     requireAuth: true,
-    title: 'Submissions',
-    description: 'View and manage submissions',
-    icon: 'file-text',
-    showInNav: true
-  },
-  {
-    path: '/evaluations',
-    component: Evaluations,
-    requiredPermissions: ['read:evaluations'],
-    requireAuth: true,
-    title: 'Evaluations',
-    description: 'View and manage evaluations',
-    icon: 'clipboard-check',
-    showInNav: true
-  },
-  {
-    path: '/internships',
-    component: Internships,
-    requiredPermissions: ['read:internships'],
-    requireAuth: true,
-    title: 'Internships',
-    description: 'Manage internship programs',
-    icon: 'briefcase',
-    showInNav: true
-  },
-  {
-    path: '/users',
-    component: Users,
-    requiredPermissions: ['read:users'],
-    requireAuth: true,
-    title: 'Users',
-    description: 'Manage user accounts',
-    icon: 'users',
-    showInNav: true
-  },
-  {
-    path: '/reports',
-    component: Reports,
-    allowedRoles: ['student'],
-    requireAuth: true,
-    requiredPermissions: ['read:reports'],
-    title: 'Reports',
+    title: 'Tasks',
+    description: 'View and manage tasks',
     icon: 'file-text',
     showInNav: true
   },
   {
     path: '/feedback',
-    component: Evaluations, // or your Feedback page
-    allowedRoles: ['student'],
-    requireAuth: true,
+    component: Feedback,
     requiredPermissions: ['read:evaluations'],
+    requireAuth: true,
     title: 'Feedback',
+    description: 'View and manage feedback',
     icon: 'clipboard-check',
     showInNav: true
   },
   {
-    path: '/settings',
-    component: Profile, // or a dedicated Settings page if you have one
-    allowedRoles: ['student'],
+    path: '/admin/users',
+    component: AdminUsers,
+    allowedRoles: ['admin'],
     requireAuth: true,
-    requiredPermissions: ['read:profile'],
-    title: 'Settings',
-    icon: 'settings',
+    title: 'User Management',
+    description: 'Manage user accounts',
+    icon: 'users',
     showInNav: true
   },
   {
     path: '/unauthorized',
-    component: lazy(() => import('../pages/Unauthorized')),
+    component: lazy(() => import('../pages/system/Unauthorized')),
     requireAuth: false,
     title: 'Unauthorized',
     description: 'Access denied'
   },
   {
     path: '/not-found',
-    component: lazy(() => import('../pages/NotFound')),
+    component: lazy(() => import('../pages/system/NotFound')),
     requireAuth: false,
     title: 'Not Found',
     description: 'Page not found'
   }
 ];
 
-export const getRoutesForRole = (role: UserRole): RouteConfig[] => {
-  return ROUTE_CONFIGS.filter(route => {
-    if (!route.requireAuth) return true;
-    if (route.allowedRoles && !route.allowedRoles.includes(role)) return false;
+export const getRoutesForRole = (role: UserRole): RouteConfig[] =>
+  ROUTE_CONFIGS.filter(route => {
+    // If route has specific role restrictions, check them
+    if (route.allowedRoles && route.allowedRoles.length > 0) {
+      return route.allowedRoles.includes(role);
+    }
+    
+    // If route has permission requirements, include it (permissions will be checked at runtime)
+    if (route.requiredPermissions && route.requiredPermissions.length > 0) {
+      return true;
+    }
+    
+    // If no restrictions, include the route
     return true;
   });
-};
 
 export const getNavRoutesForRole = (role: UserRole): RouteConfig[] => {
-  return getRoutesForRole(role).filter(route => route.showInNav);
+  const routes = getRoutesForRole(role);
+  return routes.filter(route => route.showInNav);
 };
 
 export const findRouteByPath = (path: string): RouteConfig | undefined => {

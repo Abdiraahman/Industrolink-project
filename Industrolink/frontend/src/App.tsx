@@ -8,11 +8,13 @@ import PermissionGuard from './components/auth/PermissionGuard';
 import MainLayout from './components/layout/MainLayout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import EmailVerification from './pages/auth/EmailVerification';
+import AdminRoutes from './routes/AdminRoutes';
 
 // Dashboard Pages
 import StudentDashboard from './pages/dashboard/StudentDashboard';
 import SupervisorDashboard from './pages/dashboard/SupervisorDashboard';
-import AdminDashboard from './pages/dashboard/AdminDashboard';
+import LecturerDashboard from './pages/dashboard/LecturerDashboard';
 
 // Task Pages
 import DailyReport from './pages/tasks/DailyReport';
@@ -26,6 +28,8 @@ import FeedbackManagement from './pages/feedback/FeedbackManagement';
 import ProfileEdit from './pages/profile/ProfileEdit';
 import ProfileSetup from './pages/profile/ProfileSetup';
 import UserManagement from './pages/profile/UserManagement';
+import SupervisorStudents from './pages/supervisor/SupervisorStudents';
+import LecturerStudents from './pages/lecturer/LecturerStudents';
 
 // System Pages
 import Unauthorized from './pages/system/Unauthorized';
@@ -81,13 +85,52 @@ function App(): React.ReactElement {
         <Route path="/register" element={
           isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />
         } />
+        <Route path="/verify-email" element={<EmailVerification />} />
 
         {/* System Routes */}
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/404" element={<NotFound />} />
 
+        {/* Admin Routes */}
+        <Route path="/system-admin/*" element={
+          !loading && localStorage.getItem('adminToken') === 'admin-authenticated' ? (
+            <AdminRoutes />
+          ) : !loading ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <LoadingSpinner />
+          )
+        } />
+
         {/* Protected Routes - Dashboard */}
         <Route path="/dashboard" element={
+          !loading && isAuthenticated && user ? (
+            user.profile_completed ? (
+              user.role === 'admin' && localStorage.getItem('adminToken') === 'admin-authenticated' ? (
+                <Navigate to="/system-admin/dashboard" replace />
+              ) : (
+                <MainLayout user={user} onLogout={logout} />
+              )
+            ) : (
+              <Navigate to="/profile/setup" replace />
+            )
+          ) : !loading ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <LoadingSpinner />
+          )
+        }>
+          <Route index element={
+            <PermissionGuard permission="read:profile">
+              {user?.role === 'student' && <StudentDashboard />}
+              {user?.role === 'supervisor' && <SupervisorDashboard />}
+              {user?.role === 'lecturer' && <LecturerDashboard />}
+            </PermissionGuard>
+          } />
+        </Route>
+
+        {/* Protected Routes - Supervisor Student Management */}
+        <Route path="/supervisor" element={
           isAuthenticated && user ? (
             user.profile_completed ? (
               <MainLayout user={user} onLogout={logout} />
@@ -98,11 +141,34 @@ function App(): React.ReactElement {
             <Navigate to="/login" replace />
           )
         }>
-          <Route index element={
-            <PermissionGuard permission="read:profile">
-              {user?.role === 'student' && <StudentDashboard />}
-              {user?.role === 'supervisor' && <SupervisorDashboard />}
-              {user?.role === 'admin' && <AdminDashboard />}
+          <Route path="students" element={
+            <PermissionGuard
+              permission="read:students"
+              fallback={<div className="text-center text-gray-500">You don't have permission to access company students.</div>}
+            >
+              {user?.role === 'supervisor' && <SupervisorStudents />}
+            </PermissionGuard>
+          } />
+        </Route>
+
+        {/* Protected Routes - Lecturer Student Management */}
+        <Route path="/lecturer" element={
+          isAuthenticated && user ? (
+            user.profile_completed ? (
+              <MainLayout user={user} onLogout={logout} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }>
+          <Route path="students" element={
+            <PermissionGuard
+              permission="read:students"
+              fallback={<div className="text-center text-gray-500">You don't have permission to access assigned students.</div>}
+            >
+              {user?.role === 'lecturer' && <LecturerStudents />}
             </PermissionGuard>
           } />
         </Route>

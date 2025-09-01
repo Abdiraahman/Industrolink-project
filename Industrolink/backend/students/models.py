@@ -94,7 +94,7 @@ class DailyTask(models.Model):
     class Meta:
         db_table = 'daily_tasks'
         ordering = ['-date', '-created_at']
-        unique_together = ['student', 'date']  # One task entry per student per day (auto-generated date)
+        # unique_together = ['student', 'date']  # One task entry per student per day (auto-generated date) - COMMENTED OUT FOR DEVELOPMENT
         indexes = [
             models.Index(fields=['student', 'date']),
             models.Index(fields=['week_number', 'iso_year']),
@@ -107,10 +107,18 @@ class DailyTask(models.Model):
             raise ValidationError("Tasks can only be assigned to student users")
     
     def save(self, *args, **kwargs):
-        if self.date:
-            iso_year, iso_week, _ = self.date.isocalendar()
-            self.week_number = iso_week
-            self.iso_year = iso_year
+        # Always use current date for calculations
+        from datetime import date
+        current_date = date.today()
+        
+        # Set the date if not already set
+        if not self.date:
+            self.date = current_date
+        
+        # Calculate week_number and iso_year from current date
+        iso_year, iso_week, _ = current_date.isocalendar()
+        self.week_number = iso_week
+        self.iso_year = iso_year
         
         self.full_clean()
         super().save(*args, **kwargs)
