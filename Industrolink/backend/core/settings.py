@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'university',
     'students',
     'lecturers',
-    'supervisors',   
+    'supervisors',
+    'systemadmin',  # Custom admin app
 ]
 
 AUTH_USER_MODEL = 'users.User'
@@ -63,6 +64,7 @@ REST_FRAMEWORK = {
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware should be at the top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -70,7 +72,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 # CORS_ALLOW_ALL_ORIGINS = True  # Only for development!
@@ -106,6 +107,10 @@ CORS_ALLOW_HEADERS = [
 
 
 CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent with CORS requests
+
+# Additional CORS settings for development
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 
 
 from datetime import timedelta
@@ -217,6 +222,24 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Change this to your email provider
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'abdirahmanibrahim9784@gmail.com'  # Change this to your email
+EMAIL_HOST_PASSWORD = 'mpvo bjys qhib jtgg'  # Change this to your app password
+DEFAULT_FROM_EMAIL = 'abdirahmanibrahim9784@gmail.com'  # Change this to your email
+
+# Email Verification Settings
+EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS = 24
+EMAIL_VERIFICATION_SUBJECT = 'Verify Your Email - Industrolink'
+EMAIL_VERIFICATION_FROM_EMAIL = 'noreply@industrolink.com'
+
+# Frontend URL for email verification links
+FRONTEND_URL = 'http://localhost:5173'  # Your Vite dev server URL
 
 
 

@@ -38,6 +38,33 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'user_id', 'first_name', 'middle_name', 'last_name', 
             'username', 'email', 'role', 'is_active', 'profile_completed', 
-            'created_at'
+            'created_at', 'email_verified'
         ]
-        read_only_fields = ['user_id', 'created_at']
+        read_only_fields = ['user_id', 'created_at', 'email_verified']
+
+
+class EmailVerificationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    token = serializers.CharField()
+    
+    def validate_email(self, value):
+        try:
+            user = User.objects.get(email=value)
+            if user.email_verified:
+                raise serializers.ValidationError("Email is already verified")
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User with this email does not exist")
+        return value
+
+
+class ResendVerificationSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    
+    def validate_email(self, value):
+        try:
+            user = User.objects.get(email=value)
+            if user.email_verified:
+                raise serializers.ValidationError("Email is already verified")
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User with this email does not exist")
+        return value

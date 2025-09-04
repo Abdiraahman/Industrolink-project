@@ -25,6 +25,20 @@ const Login: React.FC = () => {
   const { login, loading, error, user, isAuthenticated } = useAuthContext();
   const navigate = useNavigate();
 
+  // Check if user is already authenticated and redirect accordingly
+  const hasRedirected = React.useRef(false);
+  React.useEffect(() => {
+    if (isAuthenticated && user && !hasRedirected.current && !loading) {
+      hasRedirected.current = true;
+      const adminToken = localStorage.getItem('adminToken');
+      if (adminToken === 'admin-authenticated') {
+        navigate('/system-admin/dashboard', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate, loading]);
+
   const validateForm = (): boolean => {
     const newErrors: LoginErrors = {};
     if (!formData.email.trim()) {
@@ -52,10 +66,11 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    await login(formData.email, formData.password);
-    // If login is successful, redirect
-    if (user || isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+    
+    try {
+      await login(formData.email, formData.password);
+    } catch (error) {
+      console.error('Login error:', error);
     }
   };
 

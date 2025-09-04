@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
 import { type User } from '../types/user';
 
 interface AuthContextType {
@@ -21,7 +21,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch user profile from backend (using HTTP-only cookies)
+  const isFetching = useRef(false);
   const fetchUser = async () => {
+    if (isFetching.current) return;
+    isFetching.current = true;
+    
     console.log('🔐 Fetching user profile...');
     setLoading(true);
     setError(null);
@@ -37,6 +41,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Extract user data from the nested structure
         const userData = data.user || data;
         console.log('👤 Extracted user data:', userData);
+        
+        // Check if this user is an admin and set admin token if needed
+        if (userData.role === 'admin') {
+          localStorage.setItem('adminToken', 'admin-authenticated');
+          localStorage.setItem('adminUser', JSON.stringify(userData));
+        }
+        
         setUser(userData);
         setIsAuthenticated(true);
       } else if (response.status === 401) {
@@ -59,23 +70,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError('Network error - please check your connection');
     } finally {
       setLoading(false);
+      isFetching.current = false;
       console.log('🏁 Fetch user profile completed');
     }
   };
 
   // Login method
+  const isLoggingIn = useRef(false);
   const login = async (email: string, password: string) => {
+    if (isLoggingIn.current) return;
+    isLoggingIn.current = true;
+    
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/users/login/`, {
+      // First try regular user login
+      let response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/users/login/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
+      
       if (response.ok) {
         await fetchUser();
+        return;
+      }
+      
+      // If regular login fails, try admin login
+      response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/system-admin/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Store admin token and user info
+        if (data.user) {
+          localStorage.setItem('adminToken', 'admin-authenticated');
+          localStorage.setItem('adminUser', JSON.stringify(data.user));
+          // Set user in context for admin users
+          setUser(data.user);
+          setIsAuthenticated(true);
+          setError(null);
+        }
       } else {
         const data = await response.json();
         setError(data.error || data.message || 'Login failed');
@@ -88,11 +128,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(false);
     } finally {
       setLoading(false);
+      isLoggingIn.current = false;
     }
   };
 
   // Register method
+  const isRegistering = useRef(false);
   const register = async (data: Record<string, any>) => {
+    if (isRegistering.current) return;
+    isRegistering.current = true;
+    
     setLoading(true);
     setError(null);
     try {
@@ -115,14 +160,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError('Network error during registration');
     } finally {
       setLoading(false);
+      isRegistering.current = false;
     }
   };
 
   // Logout method
+  const isLoggingOut = useRef(false);
   const logout = async () => {
+    if (isLoggingOut.current) return;
+    isLoggingOut.current = true;
+    
     setLoading(true);
     setError(null);
     try {
+      // Check if user is admin and logout from admin endpoint
+      const adminToken = localStorage.getItem('adminToken');
+      if (adminToken === 'admin-authenticated') {
+        try {
+          await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/system-admin/logout/`, {
+            method: 'POST',
+            credentials: 'include',
+          });
+        } catch (err) {
+          // Ignore admin logout errors
+        }
+        // Clear admin data
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+      }
+      
+      // Always logout from regular user endpoint
       await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/users/logout/`, {
         method: 'POST',
         credentials: 'include',
@@ -133,6 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setIsAuthenticated(false);
       setLoading(false);
+      isLoggingOut.current = false;
     }
   };
 
@@ -140,6 +208,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAuth = async () => {
     await fetchUser();
   };
+
+  // Check admin session expiration
+  useEffect(() => {
+    const checkAdminSession = () => {
+      const adminToken = localStorage.getItem('adminToken');
+      if (adminToken === 'admin-authenticated') {
+        // Check if admin user exists and is valid
+        const adminUser = localStorage.getItem('adminUser');
+        if (!adminUser) {
+          // Clear invalid admin session
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+          return;
+        }
+        
+        try {
+          const userData = JSON.parse(adminUser);
+          if (!userData.user_id || !userData.email) {
+            // Clear invalid admin session
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+          }
+        } catch (error) {
+          // Clear invalid admin session
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+        }
+      }
+    };
+
+    // Check admin session every minute
+    const adminSessionInterval = setInterval(checkAdminSession, 60 * 1000);
+    
+    // Initial check
+    checkAdminSession();
+
+    return () => clearInterval(adminSessionInterval);
+  }, []);
 
   useEffect(() => {
     fetchUser();

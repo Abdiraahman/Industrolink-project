@@ -23,4 +23,5 @@ urlpatterns = [
     path('api/students/', include('students.urls')),
     path('api/lecturers/', include('lecturers.urls')),
     path('api/supervisors/', include('supervisors.urls')),
+    path('api/system-admin/', include('systemadmin.urls')),  # Admin API endpoints
 ]

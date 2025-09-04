@@ -1,12 +1,12 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from rest_framework import status
 from .models import Student
 from .serializers import StudentProfileSerializer
 from rest_framework.decorators import api_view, permission_classes
 
 from django.db.models import Q, Count, Sum
 from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 from datetime import date, timedelta
 from .models import DailyTask, TaskCategory
 from .serializers import (
@@ -37,7 +37,6 @@ class StudentProfileCreateView(generics.CreateAPIView):
 
 
 class StudentProfileView(generics.RetrieveUpdateAPIView):
-    serializer_class = StudentProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
@@ -46,6 +45,12 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
             from rest_framework.exceptions import NotFound
             raise NotFound("Student profile not found")
         return self.request.user.student_profile
+    
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            from .serializers import StudentUpdateSerializer
+            return StudentUpdateSerializer
+        return StudentProfileSerializer
 
 
 
@@ -92,24 +97,51 @@ class DailyTaskCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def create(self, request, *args, **kwargs):
-        # Check if user is a student
-        if request.user.role != 'student':
-            return Response({
-                'error': 'Only students can create daily tasks'
-            }, status=status.HTTP_403_FORBIDDEN)
-        
-        # Check if student profile exists
-        if not hasattr(request.user, 'student_profile'):
-            return Response({
-                'error': 'Student profile not found. Please complete your profile first.'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
         try:
-            return super().create(request, *args, **kwargs)
-        except IntegrityError:
+            # Check if user is properly authenticated
+            if not request.user.is_authenticated:
+                return Response({
+                    'error': 'User not authenticated'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Check if user is a student
+            if not hasattr(request.user, 'role') or request.user.role != 'student':
+                return Response({
+                    'error': 'Only students can create daily tasks'
+                }, status=status.HTTP_403_FORBIDDEN)
+            
+            # Check if student profile exists
+            if not hasattr(request.user, 'student_profile'):
+                return Response({
+                    'error': 'Student profile not found. Please complete your profile first.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+
+            
+            # Check if a task already exists for today
+            today = date.today()
+            existing_task = DailyTask.objects.filter(
+                student=request.user.student_profile,
+                date=today
+            ).first()
+            
+
+            
+            if existing_task:
+                return Response({
+                    'error': f'You already have a task entry for today ({today.strftime("%Y-%m-%d")}). You can update your existing entry or create a new one for a different date.',
+                    'existing_task_id': str(existing_task.id),
+                    'existing_task_date': existing_task.date.isoformat()
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create the task
+            result = super().create(request, *args, **kwargs)
+            return result
+            
+        except Exception as e:
             return Response({
-                'error': 'You have already created a task entry for today. You can update your existing entry.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+                'error': f'Failed to create daily task: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def perform_create(self, serializer):
         serializer.save()
@@ -122,54 +154,123 @@ class DailyTaskListView(generics.ListAPIView):
     """
     serializer_class = DailyTaskSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None  # Disable pagination to use our custom response format
     
     def get_queryset(self):
-        user = self.request.user
-        
-        # Students can only see their own tasks
-        if user.role == 'student':
-            if not hasattr(user, 'student_profile'):
+        try:
+            user = self.request.user
+            
+            # Students can only see their own tasks
+            if user.role == 'student':
+                if not hasattr(user, 'student_profile'):
+                    return DailyTask.objects.none()
+                
+                queryset = DailyTask.objects.filter(student=user.student_profile)
+            # Lecturers and supervisors can see tasks of students they supervise
+            elif user.role in ['lecturer', 'supervisor']:
+                # For now, show all tasks - you can add supervision logic here
+                queryset = DailyTask.objects.all()
+            else:
                 return DailyTask.objects.none()
-            queryset = DailyTask.objects.filter(student=user.student_profile)
-        # Lecturers and supervisors can see tasks of students they supervise
-        elif user.role in ['lecturer', 'supervisor']:
-            # For now, show all tasks - you can add supervision logic here
-            queryset = DailyTask.objects.all()
-        else:
+        except Exception as e:
             return DailyTask.objects.none()
         
-        # Apply filters
-        date_from = self.request.query_params.get('date_from')
-        date_to = self.request.query_params.get('date_to')
-        week = self.request.query_params.get('week')
-        year = self.request.query_params.get('year')
-        approved = self.request.query_params.get('approved')
-        
-        if date_from:
-            try:
-                queryset = queryset.filter(date__gte=date_from)
-            except ValueError:
-                pass
-        
-        if date_to:
-            try:
-                queryset = queryset.filter(date__lte=date_to)
-            except ValueError:
-                pass
-        
-        if week and year:
-            try:
-                queryset = queryset.filter(week_number=int(week), iso_year=int(year))
-            except ValueError:
-                pass
-        
-        if approved is not None:
-            if approved.lower() in ['true', '1']:
-                queryset = queryset.filter(approved=True)
-            elif approved.lower() in ['false', '0']:
-                queryset = queryset.filter(approved=False)
-        
-        return queryset
+        try:
+            # Apply filters
+            student_id = self.request.query_params.get('student')
+            date_from = self.request.query_params.get('date_from')
+            date_to = self.request.query_params.get('date_to')
+            week = self.request.query_params.get('week')
+            year = self.request.query_params.get('year')
+            approved = self.request.query_params.get('approved')
+            
+            if date_from:
+                try:
+                    queryset = queryset.filter(date__gte=date_from)
+                except ValueError:
+                    pass
+            
+            if date_to:
+                try:
+                    queryset = queryset.filter(date__lte=date_to)
+                except ValueError:
+                    pass
+            
+            if week and year:
+                try:
+                    queryset = queryset.filter(week_number=int(week), iso_year=int(year))
+                except ValueError:
+                    pass
+            
+            # Filter by specific student if provided (for lecturers/supervisors/admins)
+            if student_id:
+                try:
+                    student = get_object_or_404(Student, student_id=student_id)
+                    
+                    # Students cannot access other students' tasks
+                    if user.role == 'student':
+                        return DailyTask.objects.none()
+                    
+                    # For lecturers/supervisors/admins, filter by the specified student
+                    queryset = queryset.filter(student=student)
+                except Exception as e:
+                    return DailyTask.objects.none()
+            
+            if approved is not None:
+                if approved.lower() in ['true', '1']:
+                    queryset = queryset.filter(approved=True)
+                elif approved.lower() in ['false', '0']:
+                    queryset = queryset.filter(approved=False)
+            
+            # Order by date (most recent first) and then by creation time
+            final_queryset = queryset.order_by('-date', '-created_at')
+            
+            # Apply limit if specified (after ordering)
+            limit = self.request.query_params.get('limit')
+            if limit:
+                try:
+                    limit = int(limit)
+                    if limit > 0:
+                        final_queryset = final_queryset[:limit]
+                except ValueError:
+                    pass
+            
+            return final_queryset
+        except Exception as e:
+            return DailyTask.objects.none()
+    
+    def list(self, request, *args, **kwargs):
+        """
+        Override list method to use custom response format
+        """
+        try:
+            queryset = self.get_queryset()
+            serializer = self.get_serializer(queryset, many=True)
+            return self.get_paginated_response(serializer.data)
+        except Exception as e:
+            return Response({
+                'error': 'Internal server error occurred while fetching tasks',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def get_paginated_response(self, data):
+        """
+        Override to return consistent response format
+        """
+        try:
+            # Since pagination is disabled, just return the data in the expected format
+            response_data = {
+                'count': len(data),
+                'next': None,
+                'previous': None,
+                'results': data
+            }
+            return Response(response_data)
+        except Exception as e:
+            return Response({
+                'error': 'Internal server error occurred while formatting response',
+                'details': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class DailyTaskDetailView(generics.RetrieveUpdateDestroyAPIView):

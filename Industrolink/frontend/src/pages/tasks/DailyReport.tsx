@@ -219,6 +219,11 @@ const DailyReport: React.FC = () => {
         hours_spent: typeof formattedData.hours_spent
       });
       
+      // Additional debugging
+      console.log('Task categories available:', taskCategories);
+      console.log('Selected category ID:', formattedData.task_category);
+      console.log('Selected category object:', taskCategories.find(cat => cat.id === formattedData.task_category));
+      
       const submittedTask = await dailyTasksAPI.submitDailyTask(formattedData);
       console.log('Task submitted successfully:', submittedTask);
       

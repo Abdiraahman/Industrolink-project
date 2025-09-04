@@ -8,15 +8,17 @@ import PermissionGuard from './components/auth/PermissionGuard';
 import MainLayout from './components/layout/MainLayout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import EmailVerification from './pages/auth/EmailVerification';
+import AdminRoutes from './routes/AdminRoutes';
 
 // Dashboard Pages
 import StudentDashboard from './pages/dashboard/StudentDashboard';
 import SupervisorDashboard from './pages/dashboard/SupervisorDashboard';
-import AdminDashboard from './pages/dashboard/AdminDashboard';
+import LecturerDashboard from './pages/dashboard/LecturerDashboard';
 
 // Task Pages
 import DailyReport from './pages/tasks/DailyReport';
-import TaskManagement from './pages/tasks/TaskManagement';
+
 
 // Feedback Pages
 import WeeklyReview from './pages/feedback/WeeklyReview';
@@ -25,7 +27,13 @@ import FeedbackManagement from './pages/feedback/FeedbackManagement';
 // Profile Pages
 import ProfileEdit from './pages/profile/ProfileEdit';
 import ProfileSetup from './pages/profile/ProfileSetup';
+import Settings from './pages/profile/Settings';
 import UserManagement from './pages/profile/UserManagement';
+import SupervisorStudents from './pages/supervisor/SupervisorStudents';
+import SupervisorTaskManagement from './pages/supervisor/SupervisorTaskManagement';
+import LecturerStudents from './pages/lecturer/LecturerStudents';
+import LecturerStudentDetails from './pages/lecturer/StudentDetails';
+import LecturerTaskManagement from './pages/lecturer/TaskManagement';
 
 // System Pages
 import Unauthorized from './pages/system/Unauthorized';
@@ -81,13 +89,52 @@ function App(): React.ReactElement {
         <Route path="/register" element={
           isAuthenticated ? <Navigate to="/dashboard" replace /> : <Register />
         } />
+        <Route path="/verify-email" element={<EmailVerification />} />
 
         {/* System Routes */}
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/404" element={<NotFound />} />
 
+        {/* Admin Routes */}
+        <Route path="/system-admin/*" element={
+          !loading && localStorage.getItem('adminToken') === 'admin-authenticated' ? (
+            <AdminRoutes />
+          ) : !loading ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <LoadingSpinner />
+          )
+        } />
+
         {/* Protected Routes - Dashboard */}
         <Route path="/dashboard" element={
+          !loading && isAuthenticated && user ? (
+            user.profile_completed ? (
+              user.role === 'admin' && localStorage.getItem('adminToken') === 'admin-authenticated' ? (
+                <Navigate to="/system-admin/dashboard" replace />
+              ) : (
+                <MainLayout user={user} onLogout={logout} />
+              )
+            ) : (
+              <Navigate to="/profile/setup" replace />
+            )
+          ) : !loading ? (
+            <Navigate to="/login" replace />
+          ) : (
+            <LoadingSpinner />
+          )
+        }>
+          <Route index element={
+            <PermissionGuard permission="read:profile">
+              {user?.role === 'student' && <StudentDashboard />}
+              {user?.role === 'supervisor' && <SupervisorDashboard />}
+              {user?.role === 'lecturer' && <LecturerDashboard />}
+            </PermissionGuard>
+          } />
+        </Route>
+
+        {/* Protected Routes - Supervisor Student Management */}
+        <Route path="/supervisor" element={
           isAuthenticated && user ? (
             user.profile_completed ? (
               <MainLayout user={user} onLogout={logout} />
@@ -98,11 +145,50 @@ function App(): React.ReactElement {
             <Navigate to="/login" replace />
           )
         }>
-          <Route index element={
-            <PermissionGuard permission="read:profile">
-              {user?.role === 'student' && <StudentDashboard />}
-              {user?.role === 'supervisor' && <SupervisorDashboard />}
-              {user?.role === 'admin' && <AdminDashboard />}
+          <Route path="students" element={
+            <PermissionGuard
+              permission="read:students"
+              fallback={<div className="text-center text-gray-500">You don't have permission to access company students.</div>}
+            >
+              {user?.role === 'supervisor' && <SupervisorStudents />}
+            </PermissionGuard>
+          } />
+          <Route path="task-management" element={
+            <PermissionGuard
+              permission="read:submissions"
+              fallback={<div className="text-center text-gray-500">You don't have permission to access task management.</div>}
+            >
+              {user?.role === 'supervisor' && <SupervisorTaskManagement />}
+            </PermissionGuard>
+          } />
+        </Route>
+
+        {/* Protected Routes - Lecturer Student Management */}
+        <Route path="/lecturer" element={
+          isAuthenticated && user ? (
+            user.profile_completed ? (
+              <MainLayout user={user} onLogout={logout} />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }>
+          <Route path="students" element={
+            <PermissionGuard
+              permission="read:students"
+              fallback={<div className="text-center text-gray-500">You don't have permission to access assigned students.</div>}
+            >
+              {user?.role === 'lecturer' && <LecturerStudents />}
+            </PermissionGuard>
+          } />
+          <Route path="students/:studentId" element={
+            <PermissionGuard
+              permission="read:students"
+              fallback={<div className="text-center text-gray-500">You don't have permission to access student details.</div>}
+            >
+              {user?.role === 'lecturer' && <LecturerStudentDetails />}
             </PermissionGuard>
           } />
         </Route>
@@ -128,7 +214,7 @@ function App(): React.ReactElement {
               permission="read:submissions"
               fallback={<div className="text-center text-gray-500">You don't have permission to access task management.</div>}
             >
-              <TaskManagement />
+              {user?.role === 'lecturer' && <LecturerTaskManagement />}
             </PermissionGuard>
           } />
         </Route>
@@ -170,6 +256,11 @@ function App(): React.ReactElement {
           <Route path="edit" element={
             <PermissionGuard permission="read:profile">
               <ProfileEdit />
+            </PermissionGuard>
+          } />
+          <Route path="settings" element={
+            <PermissionGuard permission="read:profile">
+              <Settings />
             </PermissionGuard>
           } />
           <Route path="setup" element={

@@ -324,3 +324,24 @@ export const verifyToken = async (): Promise<void> => {
     method: 'POST',
   });
 };
+
+// Email verification functions
+export const verifyEmail = async (email: string, token: string): Promise<{ message: string; user: any }> => {
+  return apiRequest('/api/users/verify-email/', {
+    method: 'POST',
+    body: JSON.stringify({ email, token }),
+  });
+};
+
+export const resendVerificationEmail = async (email: string): Promise<{ message: string }> => {
+  return apiRequest('/api/users/resend-verification/', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+};
+
+export const checkVerificationStatus = async (email: string): Promise<{ email_verified: boolean; verification_sent: boolean }> => {
+  return apiRequest(`/api/users/check-verification-status/?email=${encodeURIComponent(email)}`, {
+    method: 'GET',
+  });
+};

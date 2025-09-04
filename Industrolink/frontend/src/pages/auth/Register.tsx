@@ -148,6 +148,12 @@ const Register: React.FC = () => {
             <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-white mb-2">Registration Successful!</h2>
             <p className="text-slate-400 mb-4">Your account has been created successfully.</p>
+            <p className="text-slate-300 mb-4 text-sm">
+              Please check your email for a verification link to complete your registration.
+            </p>
+            <p className="text-slate-500 text-xs mb-4">
+              If you don't see the email, check your spam folder.
+            </p>
             <p className="text-sm text-slate-500">Redirecting to login page...</p>
           </div>
         </div>

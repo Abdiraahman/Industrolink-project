@@ -41,9 +41,9 @@ const MainLayout: React.FC<LayoutProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Debug: Log the user object to see its structure
-  console.log('User object in MainLayout:', user);
-  console.log('User properties:', Object.keys(user));
+  // Debug: Log the user object to see its structure (removed for production)
+  // console.log('User object in MainLayout:', user);
+  // console.log('User properties:', Object.keys(user));
 
   // Helper function to get user display name
   const getUserDisplayName = () => {
@@ -79,6 +79,27 @@ const MainLayout: React.FC<LayoutProps> = ({
       permission: 'read:profile'
     },
     {
+      path: '/supervisor/students',
+      label: 'Company Students',
+      icon: Users,
+      permission: 'read:students',
+      roles: ['supervisor']
+    },
+    {
+      path: '/supervisor/task-management',
+      label: 'Task Management',
+      icon: ClipboardCheck,
+      permission: 'read:submissions',
+      roles: ['supervisor']
+    },
+    {
+      path: '/lecturer/students',
+      label: 'Assigned Students',
+      icon: Users,
+      permission: 'read:students',
+      roles: ['lecturer']
+    },
+    {
       path: '/tasks/daily-report',
       label: 'Daily Report',
       icon: FileText,
@@ -90,7 +111,7 @@ const MainLayout: React.FC<LayoutProps> = ({
       label: 'Task Management',
       icon: ClipboardCheck,
       permission: 'read:submissions',
-      roles: ['supervisor', 'lecturer', 'admin']
+      roles: ['lecturer', 'admin']
     },
     {
       path: '/feedback/weekly-review',
@@ -107,14 +128,14 @@ const MainLayout: React.FC<LayoutProps> = ({
       roles: ['supervisor', 'lecturer', 'admin']
     },
     {
-      path: '/users/management',
+      path: '/admin/users',
       label: 'User Management',
       icon: Users,
       permission: 'read:users',
       roles: ['admin']
     },
     {
-      path: '/profile/edit',
+      path: '/profile/settings',
       label: 'Settings',
       icon: Settings,
       permission: 'read:profile'

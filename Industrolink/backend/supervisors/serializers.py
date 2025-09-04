@@ -45,3 +45,28 @@ class SupervisorProfileSerializer(serializers.ModelSerializer):
         user.save()
         
         return supervisor
+
+
+class SupervisorUpdateSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(write_only=True, required=False)
+    
+    class Meta:
+        model = Supervisor
+        fields = ['phone_number', 'position', 'company_name']
+    
+    def update(self, instance, validated_data):
+        # Handle company update by name
+        company_name = validated_data.pop('company_name', None)
+        if company_name:
+            try:
+                company = Company.objects.get(name=company_name)
+                instance.company = company
+            except Company.DoesNotExist:
+                raise serializers.ValidationError(f"Company '{company_name}' not found")
+        
+        # Update other fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        instance.save()
+        return instance
