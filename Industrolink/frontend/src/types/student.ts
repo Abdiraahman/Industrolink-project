@@ -1,8 +1,12 @@
 export interface Student {
   id: string;
   student_id?: string;
+  user_id?: string;
   name: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
+  user_email?: string;
   registration: string;
   registration_no?: string;
   course: string;
@@ -14,6 +18,8 @@ export interface Student {
   profileComplete: boolean;
   createdAt: Date;
   updatedAt: Date;
+  created_at?: string;
+  updated_at?: string;
   
   // Additional properties from backend
   academic_year?: string;
@@ -22,7 +28,6 @@ export interface Student {
   completion_date?: string;
   company_name?: string;
   user_name?: string;
-  user_email?: string;
 }
 
 export interface InternshipInfo {

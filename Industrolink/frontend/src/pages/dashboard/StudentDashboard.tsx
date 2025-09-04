@@ -71,29 +71,7 @@ const Dashboard: React.FC = () => {
       } else {
         setProfileError('Failed to load student profile');
       }
-      
-      // For development purposes, you can uncomment the following lines to use mock data
-      // when the backend is not available
-             /*
-       if (error instanceof Error && error.message.includes('fetch')) {
-         // Network error - use mock data for development
-         const mockProfile: StudentProfile = {
-           student_id: 'mock-123',
-           registration_no: 'STU001',
-           academic_year: '2024-2025',
-           course: 'BSc Computer Science',
-           year_of_study: '3',
-           company_name: 'TechCorp Solutions',
-           duration_in_weeks: 12,
-           start_date: '2024-06-01',
-           completion_date: '2024-08-24'
-         };
-         setStudentProfile(mockProfile);
-         setProfileError(null);
-         setProfileLoading(false);
-         return;
-       }
-       */
+
     } finally {
       setProfileLoading(false);
     }

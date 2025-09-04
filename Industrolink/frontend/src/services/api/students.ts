@@ -1,6 +1,17 @@
 import { apiRequest } from './base';
 import { Student } from '../../types/student';
 
+export interface StudentUpdateData {
+  registration_no: string;
+  academic_year: string;
+  course: string;
+  year_of_study: string;
+  duration_in_weeks: number;
+  start_date: string;
+  completion_date: string;
+  company_name?: string;
+}
+
 export interface StudentListResponse {
   count: number;
   next: string | null;
@@ -51,6 +62,15 @@ export const studentsApi = {
 
   // Update student profile
   updateStudentProfile: async (data: Partial<Student>): Promise<Student> => {
+    const response = await apiRequest('/students/profile/', {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+    return response;
+  },
+
+  // Update student profile (alias for compatibility)
+  updateProfile: async (data: Partial<Student>): Promise<Student> => {
     const response = await apiRequest('/students/profile/', {
       method: 'PUT',
       body: JSON.stringify(data)

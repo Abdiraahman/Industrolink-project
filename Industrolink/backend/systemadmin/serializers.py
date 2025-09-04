@@ -20,30 +20,20 @@ class AdminUserLoginSerializer(serializers.Serializer):
         email = attrs.get('email')
         password = attrs.get('password')
         
-        print(f"Validating admin login for email: {email}")
-        
         if email and password:
             user = authenticate(email=email, password=password)
-            print(f"Authentication result: user={user}")
             
             if not user:
-                print("Authentication failed - invalid credentials")
                 raise serializers.ValidationError('Invalid credentials')
             
-            print(f"User found: {user.email}, role: {user.role}, is_active: {user.is_active}")
-            
             if not user.is_active:
-                print("User account is deactivated")
                 raise serializers.ValidationError('Account is deactivated')
             
             if user.role != 'admin':
-                print(f"User role '{user.role}' is not admin")
                 raise serializers.ValidationError('Access denied. Admin role required.')
             
-            print("Admin validation successful")
             attrs['user'] = user
         else:
-            print("Missing email or password")
             raise serializers.ValidationError('Must include email and password')
         
         return attrs
@@ -158,22 +148,42 @@ class AdminActionSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         try:
+            # Check if instance is already serialized (ReturnDict)
+            if hasattr(instance, 'get') and not hasattr(instance, 'id'):
+                # This is already serialized data, return as is
+                return instance
+            
             return super().to_representation(instance)
         except Exception as e:
-            print(f"Error serializing AdminAction {instance.id}: {str(e)}")
-            # Return a safe fallback representation
-            return {
-                'id': str(instance.id),
-                'admin': str(instance.admin.id) if instance.admin else None,
-                'admin_name': 'Unknown',
-                'action_type': instance.action_type,
-                'action_type_display': instance.action_type.replace('_', ' ').title(),
-                'target_user': str(instance.target_user.id) if instance.target_user else None,
-                'target_user_name': 'Unknown',
-                'description': instance.description,
-                'metadata': instance.metadata or {},
-                'created_at': instance.created_at.isoformat() if instance.created_at else None
-            }
+            # Check if instance has id attribute before trying to access it
+            if hasattr(instance, 'id'):
+                # Return a safe fallback representation
+                return {
+                    'id': str(instance.id),
+                    'admin': str(instance.admin.id) if instance.admin else None,
+                    'admin_name': 'Unknown',
+                    'action_type': instance.action_type,
+                    'action_type_display': instance.action_type.replace('_', ' ').title() if instance.action_type else 'Unknown Action',
+                    'target_user': str(instance.target_user.id) if instance.target_user else None,
+                    'target_user_name': 'Unknown',
+                    'description': instance.description,
+                    'metadata': instance.metadata or {},
+                    'created_at': instance.created_at.isoformat() if instance.created_at else None
+                }
+            else:
+                # Return a minimal fallback for already serialized data
+                return {
+                    'id': 'unknown',
+                    'admin': None,
+                    'admin_name': 'Unknown',
+                    'action_type': 'unknown',
+                    'action_type_display': 'Unknown Action',
+                    'target_user': None,
+                    'target_user_name': 'Unknown',
+                    'description': 'Error occurred during serialization',
+                    'metadata': {},
+                    'created_at': None
+                }
 
 class AdminSettingsSerializer(serializers.ModelSerializer):
     """Serializer for admin settings"""

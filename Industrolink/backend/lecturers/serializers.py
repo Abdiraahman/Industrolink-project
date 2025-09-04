@@ -23,18 +23,27 @@ class LecturerProfileSerializer(serializers.ModelSerializer):
 
 
 class StudentListSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    user_name = serializers.SerializerMethodField()
     user_email = serializers.EmailField(source='user.email', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
+    user_id = serializers.UUIDField(source='user.user_id', read_only=True)
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
     
     class Meta:
         model = Student
         fields = [
-            'student_id', 'registration_no', 'academic_year', 'course',
-            'year_of_study', 'company_name', 'duration_in_weeks', 
-            'start_date', 'completion_date', 'user_name', 'user_email',
-            'created_at', 'updated_at'
+            'student_id', 'user_id', 'first_name', 'last_name', 'registration_no', 
+            'academic_year', 'course', 'year_of_study', 'company_name', 
+            'duration_in_weeks', 'start_date', 'completion_date', 'user_name', 
+            'user_email', 'created_at', 'updated_at'
         ]
+    
+    def get_user_name(self, obj):
+        try:
+            return obj.user.get_full_name() if obj.user else 'N/A'
+        except:
+            return f"{obj.user.first_name or ''} {obj.user.last_name or ''}".strip() or 'N/A'
 
 
 class LecturerStudentAssignmentSerializer(serializers.ModelSerializer):

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Search, Filter, Eye, Edit, BookOpen, GraduationCap } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Search, Filter, Eye, Edit, BookOpen, GraduationCap, Calendar } from 'lucide-react'
 import { lecturersApi } from '../../services/api/lecturers'
 import { Student } from '../../types/student'
 
@@ -12,6 +13,7 @@ interface AssignedStudent extends Student {
 }
 
 const LecturerStudents = (): React.JSX.Element => {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [students, setStudents] = useState<AssignedStudent[]>([])
@@ -53,9 +55,10 @@ const LecturerStudents = (): React.JSX.Element => {
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = 
-      (student.user_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (student.user_email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (student.course || '').toLowerCase().includes(searchTerm.toLowerCase())
+      (student.user_name || student.name || `${student.first_name || ''} ${student.last_name || ''}`.trim() || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (student.user_email || student.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (student.course || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (student.registration_no || student.registration || '').toLowerCase().includes(searchTerm.toLowerCase())
     
     // Calculate status based on dates
     const now = new Date()
@@ -104,11 +107,17 @@ const LecturerStudents = (): React.JSX.Element => {
           <p className="text-gray-600 mt-1">Students assigned to you by supervisors</p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-            <BookOpen size={20} />
-            <span>View Assignments</span>
+          <button 
+            onClick={() => navigate('/tasks/management')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          >
+            <Calendar size={20} />
+            <span>Task Management</span>
           </button>
-          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+          <button 
+            onClick={() => navigate('/feedback/management')}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+          >
             <GraduationCap size={20} />
             <span>Evaluate Students</span>
           </button>
@@ -197,24 +206,24 @@ const LecturerStudents = (): React.JSX.Element => {
                   }
 
                   return (
-                    <tr key={student.id} className="hover:bg-gray-50">
+                    <tr key={student.student_id || student.user_id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {student.user_name || student.name || 'N/A'}
+                            {student.user_name || student.name || `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'N/A'}
                           </div>
                           <div className="text-sm text-gray-500">
                             {student.user_email || student.email || 'N/A'}
                           </div>
                           <div className="text-xs text-gray-400">
-                            Reg: {student.registration || 'N/A'}
+                            Reg: {student.registration_no || student.registration || 'N/A'}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{student.course || 'N/A'}</div>
                         <div className="text-xs text-gray-500">
-                          Year: {student.yearOfStudy || 'N/A'}
+                          Year: {student.year_of_study || student.yearOfStudy || 'N/A'}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -243,13 +252,25 @@ const LecturerStudents = (): React.JSX.Element => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900 p-1 rounded" title="View Details">
+                          <button 
+                            onClick={() => navigate(`/lecturer/students/${student.student_id || student.user_id}`)}
+                            className="text-blue-600 hover:text-blue-900 p-1 rounded" 
+                            title="View Details"
+                          >
                             <Eye size={16} />
                           </button>
-                          <button className="text-green-600 hover:text-green-900 p-1 rounded" title="Evaluate">
+                          <button 
+                            onClick={() => navigate('/feedback/management')}
+                            className="text-green-600 hover:text-green-900 p-1 rounded" 
+                            title="Evaluate"
+                          >
                             <Edit size={16} />
                           </button>
-                          <button className="text-purple-600 hover:text-purple-900 p-1 rounded" title="View Progress">
+                          <button 
+                            onClick={() => navigate('/tasks/management')}
+                            className="text-purple-600 hover:text-purple-900 p-1 rounded" 
+                            title="View Tasks"
+                          >
                             <BookOpen size={16} />
                           </button>
                         </div>

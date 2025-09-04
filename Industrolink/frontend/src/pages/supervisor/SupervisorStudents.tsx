@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Search, Filter, Plus, Eye, Edit, Trash2, Users, Building } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Search, Filter, Plus, Eye, Edit, Trash2, Users, Building, ClipboardCheck } from 'lucide-react'
 import { supervisorsApi } from '../../services/api/supervisors'
 import { Student } from '../../types/student'
 
@@ -10,6 +11,7 @@ interface CompanyStudent extends Student {
 }
 
 const SupervisorStudents = (): React.JSX.Element => {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [students, setStudents] = useState<CompanyStudent[]>([])
@@ -236,8 +238,12 @@ const SupervisorStudents = (): React.JSX.Element => {
                           <button className="text-green-600 hover:text-green-900 p-1 rounded">
                             <Edit size={16} />
                           </button>
-                          <button className="text-purple-600 hover:text-purple-900 p-1 rounded">
-                            <Users size={16} />
+                          <button 
+                            className="text-purple-600 hover:text-purple-900 p-1 rounded"
+                            onClick={() => navigate(`/supervisor/task-management?student=${student.student_id || student.id}`)}
+                            title="Approve Tasks"
+                          >
+                            <ClipboardCheck size={16} />
                           </button>
                         </div>
                       </td>

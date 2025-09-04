@@ -219,23 +219,11 @@ class AdminDashboardView(APIView):
                 
                 if action_count > 0:
                     recent_actions = AdminAction.objects.all()[:10]
-                    
-                    # Serialize actions with individual error handling
-                    actions_data = []
-                    for action in recent_actions:
-                        try:
-                            action_data = AdminActionSerializer(action).data
-                            actions_data.append(action_data)
-                        except Exception as action_error:
-                            # Skip problematic actions
-                            continue
-                    
-                    actions_data = actions_data
                 else:
-                    actions_data = []
+                    recent_actions = []
                     
             except Exception as actions_error:
-                actions_data = []
+                recent_actions = []
             
             # Create stats with fallback for actions
             stats = {
@@ -244,7 +232,7 @@ class AdminDashboardView(APIView):
                 'total_supervisors': total_supervisors,
                 'total_admins': total_admins,
                 'pending_approvals': pending_approvals,
-                'recent_actions': actions_data if actions_data else []
+                'recent_actions': recent_actions  # Pass the queryset directly
             }
             
             serializer = DashboardStatsSerializer(stats)
@@ -330,16 +318,16 @@ class StudentAssignmentView(APIView):
             
             try:
                 student = Student.objects.get(user_id=student_id)
-                lecturer = Lecturer.objects.get(user_id=lecturer_id)
-            except (Student.DoesNotExist, Lecturer.DoesNotExist):
+                lecturer_user = User.objects.get(user_id=lecturer_id, role='lecturer')
+            except (Student.DoesNotExist, User.DoesNotExist):
                 return Response({'error': 'Student or lecturer not found'}, status=status.HTTP_404_NOT_FOUND)
             
             if action == 'assign':
-                student.lecturer = lecturer
-                description = f'Student {student.user.email} assigned to lecturer {lecturer.user.email}'
+                student.lecturer = lecturer_user
+                description = f'Student {student.user.email} assigned to lecturer {lecturer_user.email}'
             elif action == 'unassign':
                 student.lecturer = None
-                description = f'Student {student.user.email} unassigned from lecturer {lecturer.user.email}'
+                description = f'Student {student.user.email} unassigned from lecturer {lecturer_user.email}'
             else:
                 return Response({'error': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -568,7 +556,12 @@ class UserDetailsView(APIView):
                         'company_name': student_profile.company.name if student_profile.company else None,
                         'duration_in_weeks': student_profile.duration_in_weeks,
                         'start_date': student_profile.start_date,
-                        'completion_date': student_profile.completion_date
+                        'completion_date': student_profile.completion_date,
+                        'assigned_lecturer': {
+                            'user_id': student_profile.lecturer.user_id if student_profile.lecturer else None,
+                            'name': f"{student_profile.lecturer.first_name} {student_profile.lecturer.last_name}" if student_profile.lecturer else None,
+                            'email': student_profile.lecturer.email if student_profile.lecturer else None
+                        } if student_profile.lecturer else None
                     }
                     
                     # Get recent daily tasks

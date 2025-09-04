@@ -135,7 +135,7 @@ class UserRegistrationView(generics.CreateAPIView):
         user.save()
         
         # Build verification URL
-        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3001')
         verification_url = f"{frontend_url}/verify-email?token={verification_token}&email={user.email}"
         
         # Send verification email
@@ -374,6 +374,81 @@ def profile_view(request):
     })
 
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def profile_update_view(request):
+    """
+    Update user profile information
+    """
+    try:
+        user = request.user
+        
+        # Update user fields
+        if 'first_name' in request.data:
+            user.first_name = request.data['first_name']
+        if 'last_name' in request.data:
+            user.last_name = request.data['last_name']
+        if 'email' in request.data:
+            user.email = request.data['email']
+        if 'username' in request.data:
+            user.username = request.data['username']
+        
+        user.save()
+        
+        return Response({
+            'message': 'Profile updated successfully',
+            'user': UserSerializer(user).data
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Failed to update profile',
+            'details': str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def password_change_view(request):
+    """
+    Change user password
+    """
+    try:
+        user = request.user
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+        
+        if not all([current_password, new_password, confirm_password]):
+            return Response({
+                'error': 'All password fields are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if new_password != confirm_password:
+            return Response({
+                'error': 'New passwords do not match'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verify current password
+        if not user.check_password(current_password):
+            return Response({
+                'error': 'Current password is incorrect'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Set new password
+        user.set_password(new_password)
+        user.save()
+        
+        return Response({
+            'message': 'Password changed successfully'
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Failed to change password',
+            'details': str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
+
 class CompanyRegistrationView(generics.CreateAPIView):
     serializer_class = CompanyRegistrationSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -486,4 +561,5 @@ def check_email_verification_status(request):
         return Response({
             'error': 'User not found'
         }, status=status.HTTP_404_NOT_FOUND)
+
 

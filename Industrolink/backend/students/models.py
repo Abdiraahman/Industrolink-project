@@ -18,8 +18,6 @@ class Student(models.Model):
     academic_year = models.CharField(max_length=20)
     course = models.CharField(max_length=100)
     year_of_study = models.CharField(max_length=20)
-    # company_name = models.CharField(max_length=100)
-    # company_address = models.TextField()
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
@@ -28,6 +26,14 @@ class Student(models.Model):
     duration_in_weeks = models.IntegerField()
     start_date = models.DateField()
     completion_date = models.DateField()
+    lecturer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_students',
+        limit_choices_to={'role': 'lecturer'}
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -84,6 +90,17 @@ class DailyTask(models.Model):
         validators=[MinValueValidator(0.1), MaxValueValidator(24)]
     )
     approved = models.BooleanField(default=False)
+    # Supervisor approval fields
+    supervisor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_tasks',
+        limit_choices_to={'role': 'supervisor'}
+    )
+    supervisor_comments = models.TextField(blank=True, null=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

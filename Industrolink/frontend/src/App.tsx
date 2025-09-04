@@ -18,7 +18,7 @@ import LecturerDashboard from './pages/dashboard/LecturerDashboard';
 
 // Task Pages
 import DailyReport from './pages/tasks/DailyReport';
-import TaskManagement from './pages/tasks/TaskManagement';
+
 
 // Feedback Pages
 import WeeklyReview from './pages/feedback/WeeklyReview';
@@ -27,9 +27,13 @@ import FeedbackManagement from './pages/feedback/FeedbackManagement';
 // Profile Pages
 import ProfileEdit from './pages/profile/ProfileEdit';
 import ProfileSetup from './pages/profile/ProfileSetup';
+import Settings from './pages/profile/Settings';
 import UserManagement from './pages/profile/UserManagement';
 import SupervisorStudents from './pages/supervisor/SupervisorStudents';
+import SupervisorTaskManagement from './pages/supervisor/SupervisorTaskManagement';
 import LecturerStudents from './pages/lecturer/LecturerStudents';
+import LecturerStudentDetails from './pages/lecturer/StudentDetails';
+import LecturerTaskManagement from './pages/lecturer/TaskManagement';
 
 // System Pages
 import Unauthorized from './pages/system/Unauthorized';
@@ -149,6 +153,14 @@ function App(): React.ReactElement {
               {user?.role === 'supervisor' && <SupervisorStudents />}
             </PermissionGuard>
           } />
+          <Route path="task-management" element={
+            <PermissionGuard
+              permission="read:submissions"
+              fallback={<div className="text-center text-gray-500">You don't have permission to access task management.</div>}
+            >
+              {user?.role === 'supervisor' && <SupervisorTaskManagement />}
+            </PermissionGuard>
+          } />
         </Route>
 
         {/* Protected Routes - Lecturer Student Management */}
@@ -169,6 +181,14 @@ function App(): React.ReactElement {
               fallback={<div className="text-center text-gray-500">You don't have permission to access assigned students.</div>}
             >
               {user?.role === 'lecturer' && <LecturerStudents />}
+            </PermissionGuard>
+          } />
+          <Route path="students/:studentId" element={
+            <PermissionGuard
+              permission="read:students"
+              fallback={<div className="text-center text-gray-500">You don't have permission to access student details.</div>}
+            >
+              {user?.role === 'lecturer' && <LecturerStudentDetails />}
             </PermissionGuard>
           } />
         </Route>
@@ -194,7 +214,7 @@ function App(): React.ReactElement {
               permission="read:submissions"
               fallback={<div className="text-center text-gray-500">You don't have permission to access task management.</div>}
             >
-              <TaskManagement />
+              {user?.role === 'lecturer' && <LecturerTaskManagement />}
             </PermissionGuard>
           } />
         </Route>
@@ -236,6 +256,11 @@ function App(): React.ReactElement {
           <Route path="edit" element={
             <PermissionGuard permission="read:profile">
               <ProfileEdit />
+            </PermissionGuard>
+          } />
+          <Route path="settings" element={
+            <PermissionGuard permission="read:profile">
+              <Settings />
             </PermissionGuard>
           } />
           <Route path="setup" element={

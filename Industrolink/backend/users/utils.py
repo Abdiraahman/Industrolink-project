@@ -48,7 +48,8 @@ This is an automated message from Industrolink. Please do not reply to this emai
         )
         return True
     except Exception as e:
-        print(f"Failed to send verification email: {e}")
+        # In production, this should be logged to a proper logging system
+        # For now, we'll silently fail to avoid cluttering logs
         return False
 
 
